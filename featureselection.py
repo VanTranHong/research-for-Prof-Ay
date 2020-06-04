@@ -25,7 +25,7 @@ from sklearn.feature_selection import mutual_info_classif
 from sklearn.feature_extraction.text import CountVectorizer
 from sklearn.feature_selection import f_classif, chi2, mutual_info_classif
 from statsmodels.stats.multicomp import pairwise_tukeyhsd
-
+from sklearn.linear_model import ElasticNet
 from ReliefF import ReliefF
 from sklearn.metrics import roc_auc_score
 from sklearn.ensemble import RandomForestRegressor, RandomForestClassifier
@@ -93,7 +93,7 @@ def reliefF(train_data, train_result, features):
     # print(X_test_subset)
     X_train, X_test, y_train, y_test = train_test_split(X, y)
 
-    fs = ReliefF(n_neighbors=100, n_features_to_keep=features)
+    fs = ReliefF(n_neighbors=100, )
     X_train = fs.fit_transform(X, y)
     index = fs.top_features[:features]
     return [columns[i] for i in index]
@@ -126,8 +126,8 @@ def reliefF(train_data, train_result, features):
 # ################## feature selection using SFS ##############
 def sfs(train_data, train_result, features, classifier):  
     columns = train_data.columns
-    X = np.array(train_data).astype(float)
-    y = np.array(train_result).astype(float)
+    X = np.array(train_data)
+    y = np.array(train_result)
     if classifier == 'svm':
         classifier = SVC()
     elif classifier == 'rdforest':
@@ -142,16 +142,15 @@ def sfs(train_data, train_result, features, classifier):
         classifier = BernoulliNB(binarize=0.0)
         
     
-    sfs = SFS(classifier, k_features=features, forward=True, floating=True, scoring='f1', verbose=1, cv=0, n_jobs=-1)
-    print(X)
+    sfs = SFS(classifier, k_features=(1, len(columns)), forward=True, floating=True, scoring='f1', verbose=1, cv=0, n_jobs=-1)
     print(y)
     sfs.fit(X, y)
-    # index = list(sfs.k_feature_names_)
-    # index = [int(s) for s in index]
+    index = list(sfs.k_feature_names_)
+    index = [int(s) for s in index]
    
 
     
-    # return [columns[i] for i in index]
+    return [columns[i] for i in index]
     
     
     
