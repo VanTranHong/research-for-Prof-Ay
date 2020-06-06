@@ -461,7 +461,7 @@ def xgboost(data, column, features, method, file_to_write):
 
         xgb.fit(train_data, train_result)
         ypred = xgb.predict(test_data)
-        dict[score]+=metrics.accuracy_score(test_result,ypred)/10
+        dict['score']+=metrics.accuracy_score(test_result,ypred)/10
     writer = pd.ExcelWriter(file_to_write)
     df = pd.DataFrame([dict],index = ['Accuracy'])
     df.to_excel(writer,'Accuracy')
