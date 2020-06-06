@@ -43,7 +43,7 @@ from sklearn.naive_bayes import BernoulliNB
 from featureselection import infogain, reliefF, sfs,run_feature_selection
 
 
-skf = StratifiedKFold(n_splits=10)
+
 
 ############ boosting base classifier ###############
 
@@ -60,11 +60,13 @@ def bag(classifier):
    #______________________ALGORITHM______________________________ 
 ########## this is SVM##########
 def svm(data, column, features, method, file_to_write):
+    skf = StratifiedKFold(n_splits=10)
     X = np.array(data.drop(columns = [column], axis = 1))
     y = np.array(data[column])
+    top_features = {}
     Cs = [0.1, 1, 10, 100, 1000]
     dict = {'poly':[0]*len(Cs),'rbf':[0]*len(Cs), 'poly_boosted':[0]*len(Cs), 'poly_bagged':[0]*len(Cs), 'rbf_boosted':[0]*len(Cs), 'rbf_bagged':[0]*len(Cs)}
-    top_features = {}
+    
     
     
     columns = data.drop(columns = [column], axis = 1).columns 
@@ -84,12 +86,13 @@ def svm(data, column, features, method, file_to_write):
         features_selected = run_feature_selection(method,train_data,train_result,features, 'svm')
         
         print(features_selected)
-        # for feature in features_selected:
-        #     top_features[feature]+=1 
+        for feature in features_selected:
+            top_features[feature]+=1 
+        train_data = np.array(train_data[features_selected])
         
-        # print('finding the ratio')
-        # print(sum(y[test])/len(y[test]))
-        # print(sum(y[train])/len(y[train]))
+        test_data = np.array(test_data[features_selected])
+        
+       
         
         
         
@@ -193,11 +196,13 @@ def svm(data, column, features, method, file_to_write):
         
 #########Random Forest Classification #################        
 def rdforest(data, column, features, method, file_to_write):
+    skf = StratifiedKFold(n_splits=10)
     X = np.array(data.drop(columns = [column], axis = 1))
     y = np.array(data[column])
+    top_features = {}
     estimators = np.linspace(start = 20, stop = 200, num = 10)
     dict = {'rdforest':[0]*len(estimators),'rdforest_bagged':[0]*len(estimators), 'rdforest_boosted':[0]*len(estimators)}
-    top_features = {}
+    
     columns = data.drop(columns = [column], axis = 1).columns 
     for column in columns:
         top_features.update({column:0})
@@ -207,13 +212,13 @@ def rdforest(data, column, features, method, file_to_write):
         train_data = pd.DataFrame(data = train_data, columns=columns)
         test_data = pd.DataFrame(data = test_data, columns=columns)
         features_selected = run_feature_selection(method,train_data,train_result,features, 'rdforest')
-        # for feature in features_selected:
-        #     top_features[feature]+=1
-        # Number of trees in random forest
+        for feature in features_selected:
+            top_features[feature]+=1
+        train_data = np.array(train_data[features_selected])
+        
+        test_data = np.array(test_data[features_selected])
+       
         n_estimators = [int(x) for x in estimators]
-        # svm(data,X,y , train,test) 
-        # parameters = {'kernel':('poly', 'rbf'), 'C':[0.1, 1, 10, 100, 1000]}
-        # # grid = GridSearchCV(SVC(probability=True,kernel = 'poly' ), param_grid=parameters, refit = True, verbose = 3)
         methods = ['','_boosted','_bagged']
         for method in methods:
             name = 'rdforest'+method
@@ -276,6 +281,9 @@ def rdforest(data, column, features, method, file_to_write):
     
   #####################Lasso Logictic Regression CV ################    
 def lasso(data,column, features, method, file_to_write):
+    skf = StratifiedKFold(n_splits=10)
+    X = np.array(data.drop(columns = [column], axis = 1))
+    y = np.array(data[column])
     alphas = np.logspace(-4, -0.5, 30)
     dict = {}
     top_features = {}
@@ -286,8 +294,7 @@ def lasso(data,column, features, method, file_to_write):
     for column in columns:
         top_features.update({column:0})
     
-    X = np.array(data.drop(columns = [column], axis = 1))
-    y = np.array(data[column])
+   
     for train, test in skf.split(X,y):
         train_data, test_data = X[train], X[test]
         train_result, test_result = y[train], y[test] 
@@ -298,10 +305,14 @@ def lasso(data,column, features, method, file_to_write):
         features_selected = run_feature_selection(method,train_data,train_result,features, 'lasso')
         
         
+        
         for feature in features_selected:
             top_features[feature]+=1
+        train_data = np.array(train_data[features_selected])
+        
+        test_data = np.array(test_data[features_selected])
         for alpha in alphas:
-            lasso = Lasso(alpha=alpha)
+            lasso = LogisticRegression()
              
             
             lasso.fit(train_data, train_result)   
@@ -327,6 +338,7 @@ def lasso(data,column, features, method, file_to_write):
 # ###########  ElasticNetCV  ##########      
         
 def elasticNet (data, column, features, method, file_to_write):
+    skf = StratifiedKFold(n_splits=10)
     X = np.array(data.drop(columns = [column], axis = 1))
     y = np.array(data[column])
     alphas= [0.0001, 0.001, 0.01, 0.1, 1, 10, 100]
@@ -393,11 +405,12 @@ def elasticNet (data, column, features, method, file_to_write):
     
     
 # ########### decision tree classifier ##################
-def xgboost(data, column, features, method, file_to_write):    
+def xgboost(data, column, features, method, file_to_write):   
+    skf = StratifiedKFold(n_splits=10) 
     X = np.array(data.drop(columns = [column], axis = 1))
     y = np.array(data[column])
     top_features = {}
-    scores =0
+    dict = {'score':0} 
     columns = data.drop(columns = [column],axis = 1).columns
     for column in columns:
         top_features.update({column:0})
@@ -448,19 +461,26 @@ def xgboost(data, column, features, method, file_to_write):
 
         xgb.fit(train_data, train_result)
         ypred = xgb.predict(test_data)
-        scores+=metrics.accuracy_score(test_result,ypred)/10
-    file_to_write.write('average accuracy of xgboost is', scores+'\n')
+        dict[score]+=metrics.accuracy_score(test_result,ypred)/10
+    writer = pd.ExcelWriter(file_to_write)
+    df = pd.DataFrame([dict],index = ['Accuracy'])
+    df.to_excel(writer,'Accuracy')
     columns = [k for k in top_features]
     values = [v for v in top_features.values()]
     names_scores = list(zip( columns, values))
     ns_df = pd.DataFrame(data = names_scores, columns=['feature', 'scores'])
     #Sort the dataframe for better visualization
     ns_df_sorted = ns_df.sort_values( by = ['scores'], ascending = False)
-    file_to_write.write(ns_df_sorted.to_string()+'\n')
+    ns_df_sorted.to_excel(writer,'Features')
+    
+    writer.save() 
+        
+    
         
 
 ################ naive bayes classifier###############
 def naive_bayes(data, column, features, method, file_to_write):
+    skf = StratifiedKFold(n_splits=10) 
     X = np.array(data.drop(columns = [column], axis = 1))
     y = np.array(data[column])
     dict = {'nb_G':0,'nb_G_boost':0, 'nb_G_bag':0,'nb_B':0,'nb_B_boost':0, 'nb_B_bag':0,}
@@ -512,17 +532,20 @@ def naive_bayes(data, column, features, method, file_to_write):
         dict['nb_B_bag'] = dict['nb_B_bag']+metrics.accuracy_score(test_result,predicted_label)/10
         
        
-        
-    df = pd.DataFrame([dict], index=['Accuracy'])
-    file_to_write.write(df.to_string()+'\n')
-    
+    writer = pd.ExcelWriter(file_to_write)
+    df = pd.DataFrame([dict],index = ['Accuracy'])
+    df.to_excel(writer,'Accuracy')
     columns = [k for k in top_features]
     values = [v for v in top_features.values()]
     names_scores = list(zip( columns, values))
     ns_df = pd.DataFrame(data = names_scores, columns=['feature', 'scores'])
     #Sort the dataframe for better visualization
     ns_df_sorted = ns_df.sort_values( by = ['scores'], ascending = False)
-    file_to_write.write(ns_df_sorted.to_string()+'\n')
+    ns_df_sorted.to_excel(writer,'Features')
+    
+    writer.save() 
+        
+
     
     
 

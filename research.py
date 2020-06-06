@@ -32,10 +32,10 @@ from sklearn.model_selection import StratifiedKFold
 
 
 ##importing relevant fuctions from other files#####
-from algorithm import svm,rdforest,lasso, elasticNet,xgboost, naive_bayes
+from classifiers import svm,rdforest,lasso, elasticNet,xgboost, naive_bayes
 from data_preprocess import modify_data
 
-from featureselection import infogain, reliefF, sfs,run_feature_selection
+from featureselection import infogain, reliefF,run_feature_selection,sfs
 
 
 
@@ -99,58 +99,21 @@ data = pd.read_csv(datafile,skipinitialspace=True, header = 0)
 data.drop(['COLGATEID', 'Unnamed: 0'], axis = 1, inplace = True)
 
 data = modify_data(data, [],data.columns)
-writer = pd.ExcelWriter("imputed_data.xlsx")
-    
-data.to_excel(writer,'imputed data')
-    # columns = [k for k in top_features]
-    # values = [v for v in top_features.values()]
-    # names_scores = list(zip( columns, values))
-    # ns_df = pd.DataFrame(data = names_scores, columns=['feature', 'scores'])
-    # #Sort the dataframe for better visualization
-    # ns_df_sorted = ns_df.sort_values( by = ['scores'], ascending = False)
-    # ns_df_sorted.to_excel(writer,'Features')
-    
-writer.save() 
 
 
-
-
-
-####### Base case #########
-# print('shape of data', data.shape)
-
-
-#### feature selection ########
-# top_features = infogain(data,'HPYLORI',10)
-
-# top_features = reliefF(data,'HPYLORI',10 )
-# top_features = sfs(data,'HPYLORI',10)
-
-#########  algorithm    #########
 
 
 def run_algorithms(features, method, file_to_write):
     svm(data,'HPYLORI', features, method, file_to_write)
-    # rdforest(data,'HPYLORI',features, method, file_to_write)
+    rdforest(data,'HPYLORI',features, method, file_to_write)
     lasso(data,'HPYLORI', features, method, file_to_write)
     elasticNet(data,'HPYLORI', features, method, file_to_write)
-    # xgboost(data,'HPYLORI',features, method, file_to_write)
+    xgboost(data,'HPYLORI',features, method, file_to_write)
 
 
     naive_bayes(data,'HPYLORI',features, method, file_to_write)
     
-######## creating the excel files  
-# wb = Workbook()
-# wb.save('lasso.xlsx')
 
-# # Load existing workbook
-# wb = load_workbook('lasso.xlsx')
-# # Designate sheet name and position
-
-# sheet1 = wb.create_sheet('sheet1',0)
-# lasso(data,'HPYLORI', features, method, sheet1)
-# sheet2 = wb.create_sheet('sheet2',1)
-# sheet3 = wb.create_sheet('sheet3',2)
 
 
 f = open('research_result.txt','w')
@@ -162,19 +125,103 @@ number_of_features = [10,15,20,25,data.shape[1]-1]
 
 
 
-# rdforest(data,'HPYLORI', data.shape[1]-1, 'infogain', 'infogain_full_rdforest.xlsx')
+# naive_bayes(data,'HPYLORI', data.shape[1]-1, 'infogain', 'infogain_full_rdforest.xlsx')
 # rdforest(data,'HPYLORI', 25, 'infogain', 'infogain_25_rdforest.xlsx')
 
-# rdforest(data,'HPYLORI', data.shape[1]-1, 'reliefF', 'reliefF_full_rdforest.xlsx')
+# rdforest(data,'HPYLORI', data.shape[1]-1, 'infogain', 'infogain_full_rdforest.xlsx')
 # rdforest(data,'HPYLORI', 15, 'reliefF', 'reliefF_15_rdforest.xlsx')
 
-# naive_bayes(data,'HPYLORI', data.shape[1]-1, 'infogain', 'sfs_full_naive_bayes.xlsx')
-# elasticNet(data,'HPYLORI', 15, 'sfs', 'sfs_15_elasticNet.xlsx')
+
+# lasso(data,'HPYLORI', 10, 'sfs', 'reliefF_15_lasso.xlsx')
+
+
+#### sfs cannot be run with lasso and elasticNet
 
 
 
 
 
+# svm(data,'HPYLORI', 20, 'infogain', 'infogain_20_svm.xlsx')
+
+
+
+# lasso(data,'HPYLORI', data.shape[1]-1, 'infogain', 'infogain_full_lasso.xlsx')
+# 2.lasso(data,'HPYLORI', data.shape[1]-1, 'reliefF', 'reliefF_full_lasso.xlsx')
+# 3.lasso(data,'HPYLORI', 10, 'infogain', 'infogain_10lasso.xlsx')
+# 4. lasso(data,'HPYLORI', 10, 'reliefF', 'reliefF_10_lasso.xlsx')
+# 5.lasso(data,'HPYLORI', 20, 'infogain', 'infogain_20lasso.xlsx')
+# 6. lasso(data,'HPYLORI', 20, 'reliefF', 'reliefF_20_lasso.xlsx')
+# rdforest(data,'HPYLORI', data.shape[1]-1, 'infogain', 'infogain_full_rdforest.xlsx')
+
+# naive_bayes(data,'HPYLORI', data.shape[1]-1, 'infogain', 'infogain_full_naive_bayes.xlsx')
+# naive_bayes(data,'HPYLORI', data.shape[1]-1, 'reliefF', 'reliefF_full_naive_bayes.xlsx')
+# naive_bayes(data,'HPYLORI', data.shape[1]-1, 'sfs', 'sfs_full_naive_bayes.xlsx')
+# naive_bayes(data,'HPYLORI', 10, 'infogain', 'infogain_10_naive_bayes.xlsx')
+# naive_bayes(data,'HPYLORI', 10, 'reliefF', 'reliefF_10_naive_bayes.xlsx')
+# naive_bayes(data,'HPYLORI', 10, 'sfs', 'sfs_10_naive_bayes.xlsx')
+# naive_bayes(data,'HPYLORI', 20, 'infogain', 'infogain_20_naive_bayes.xlsx')
+# naive_bayes(data,'HPYLORI', 20, 'reliefF', 'reliefF_20_naive_bayes.xlsx')
+# naive_bayes(data,'HPYLORI', 20, 'sfs', 'sfs_20_naive_bayes.xlsx')
+
+
+# elasticNet(data,'HPYLORI', data.shape[1]-1, 'infogain', 'infogain_full_elasticNet.xlsx')
+# elasticNet(data,'HPYLORI', data.shape[1]-1, 'reliefF', 'reliefF_full_elasticNet.xlsx')
+
+# # naive_bayes(data,'HPYLORI', data.shape[1]-1, 'sfs', 'sfs_full_naive_bayes.xlsx')
+# elasticNet(data,'HPYLORI', 10, 'infogain', 'infogain_10_elasticNet.xlsx')
+# elasticNet(data,'HPYLORI', 10, 'reliefF', 'reliefF_10_elasticNet.xlsx')
+# # naive_bayes(data,'HPYLORI', 10, 'sfs', 'sfs_10_naive_bayes.xlsx')
+# elasticNet(data,'HPYLORI', 20, 'infogain', 'infogain_20_elasticNet.xlsx')
+# elasticNet(data,'HPYLORI', 20, 'reliefF', 'reliefF_20_elasticNet.xlsx')
+
+# xgboost(data,'HPYLORI', data.shape[1]-1, 'infogain', 'infogain_full_xgboost.xlsx')
+# xgboost(data,'HPYLORI', data.shape[1]-1, 'reliefF', 'reliefF_full_xgboost.xlsx')
+# xgboost(data,'HPYLORI', data.shape[1]-1, 'sfs', 'sfs_full_xgboost.xlsx')
+# xgboost(data,'HPYLORI', 10, 'sfs', 'sfs_10_xgboost.xlsx')
+# xgboost(data,'HPYLORI', 20, 'sfs', 'sfs_20_xgboost.xlsx')
+# xgboost(data,'HPYLORI', 10, 'infogain', 'infogain_10_xgboost.xlsx')
+# xgboost(data,'HPYLORI', 10, 'reliefF', 'reliefF_10_xgboost.xlsx')
+# naive_bayes(data,'HPYLORI', 10, 'sfs', 'sfs_10_naive_bayes.xlsx')
+# xgboost(data,'HPYLORI', 20, 'infogain', 'infogain_20_xgboost.xlsx')
+# xgboost(data,'HPYLORI', 20, 'reliefF', 'reliefF_20_xgboost.xlsx')
+
+# rdforest(data,'HPYLORI', 20, 'infogain', 'infogain_20_rdforest.xlsx')
+# rdforest(data,'HPYLORI', 10, 'reliefF', 'reliefF_10_rdforest.xlsx')
+rdforest(data,'HPYLORI', 20, 'reliefF', 'reliefF_20_rdforest.xlsx')
+
+
+# svm(data,'HPYLORI', 20, 'infogain', 'infogain_20_svm.xlsx')
+
+# svm(data,'HPYLORI', 10, 'reliefF', 'reliefF_10_svm.xlsx')
+# svm(data,'HPYLORI', 20, 'reliefF', 'reliefF_20_svm.xlsx')
+# svm(data,'HPYLORI', data.shape[1]-1, 'reliefF', 'reliefF_full_svm.xlsx')
+
+# svm(data,'HPYLORI', 10, 'sfs', 'sfs_10_svm.xlsx')
+# svm(data,'HPYLORI', 20, 'sfs', 'sfs_20_svm.xlsx')
+
+
+
+
+# svm(data,'HPYLORI', data.shape[1]-1, 'reliefF', 'reliefF_full_svm.xlsx')
+# # naive_bayes(data,'HPYLORI', data.shape[1]-1, 'sfs', 'sfs_full_naive_bayes.xlsx')
+# svm(data,'HPYLORI', 10, 'infogain', 'infogain_10_svm.xlsx')
+# svm(data,'HPYLORI', 10, 'reliefF', 'reliefF_10_svm.xlsx')
+# naive_bayes(data,'HPYLORI', data.shape[1]-1, 'sfs', 'sfs_full_naive_bayes.xlsx')
+# # svm(data,'HPYLORI', 20, 'infogain', 'infogain_20_svm.xlsx')
+# # svm(data,'HPYLORI', 20, 'reliefF', 'reliefF_20_svm.xlsx')
+# xgboost(data,'HPYLORI', data.shape[1]-1, 'sfs', 'sfs_full_xgboost.xlsx')
+# svm(data,'HPYLORI', data.shape[1]-1, 'sfs', 'sfs_full_svm.xlsx')
+
+
+# rdforest(data,'HPYLORI', data.shape[1]-1, 'infogain', 'infogain_full_rdforest.xlsx')
+
+
+# rdforest(data,'HPYLORI', 10, 'infogain', 'infogain_10_rdforest.xlsx')
+# rdforest(data,'HPYLORI', 10, 'reliefF', 'reliefF_10_rdforest.xlsx')
+
+# rdforest(data,'HPYLORI', 20, 'infogain', 'infogain_20_rdforest.xlsx')
+# rdforest(data,'HPYLORI', 20, 'reliefF', 'reliefF_20_rdforest.xlsx')
+# rdforest(data,'HPYLORI', data.shape[1]-1, 'sfs', 'sfs_full_rdforest.xlsx')
 
 
 
