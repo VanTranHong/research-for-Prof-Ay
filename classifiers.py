@@ -310,6 +310,9 @@ def elasticNet (data, column, features, method, file_to_write):
         train_data = pd.DataFrame(data = train_data, columns=columns)
         test_data = pd.DataFrame(data = test_data, columns=columns)
         features_selected = run_feature_selection(method,train_data,train_result,features, 'elasticNet')
+        train_data = np.array(train_data[features_selected])
+        
+        test_data = np.array(test_data[features_selected])
         
         for feature in features_selected:
             top_features[feature]+=1
