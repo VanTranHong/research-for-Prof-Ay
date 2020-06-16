@@ -35,6 +35,7 @@ from mlxtend.feature_selection import SequentialFeatureSelector as SFS
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.naive_bayes import BernoulliNB
 from xgboost import XGBClassifier
+from CFS import CFS
 
 
 
@@ -63,6 +64,8 @@ def run_feature_selection(method,train_data,train_result,features,classifier):
         return infogain(train_data,train_result,features)
     elif method == 'reliefF':
         return reliefF(train_data,train_result,features)
+    elif method == 'CFS':
+        return CFS(train_data,train_result,features)
     else:
         return sfs(train_data,train_result,features, classifier)
         

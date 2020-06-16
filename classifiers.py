@@ -12,7 +12,12 @@ from sklearn.ensemble import AdaBoostClassifier
 from sklearn.ensemble import BaggingClassifier
 from sklearn.ensemble import RandomForestRegressor
 from xgboost import XGBClassifier
-
+from sklearn.metrics import confusion_matrix, f1_score, recall_score, precision_score, precision_recall_curve, auc
+from statsmodels.stats.outliers_influence import summary_table
+import statsmodels.api as sm
+import pylab as pl
+from sklearn.experimental import enable_iterative_imputer
+from sklearn.impute import IterativeImputer
 from sklearn.model_selection import KFold
 from sklearn import metrics
 from sklearn import preprocessing
@@ -36,11 +41,14 @@ from sklearn.model_selection import GridSearchCV
 from sklearn.model_selection import RandomizedSearchCV
 from sklearn.model_selection import StratifiedKFold
 from sklearn.tree import DecisionTreeClassifier
+from sklearn.neighbors import KNeighborsClassifier
 
 from sklearn.naive_bayes import GaussianNB
 from sklearn.naive_bayes import BernoulliNB
 
 from featureselection import infogain, reliefF, sfs,run_feature_selection
+from CFS import CFS
+from data_preprocess import impute
 
 
 
@@ -48,149 +56,157 @@ from featureselection import infogain, reliefF, sfs,run_feature_selection
 ############ boosting base classifier ###############
 
 def boost (classifier):
-    abc = AdaBoostClassifier(n_estimators = 20, base_estimator=classifier, learning_rate =1)
+    abc = AdaBoostClassifier(n_estimators = 50, base_estimator=classifier, learning_rate =0.1)
     return abc
 
 ########## bagging base classifier ################
 
 def bag(classifier):
-    abc = BaggingClassifier(base_estimator=classifier,n_estimators=10, random_state=0)
+    abc = BaggingClassifier(base_estimator=classifier,n_estimators=50, random_state=0)
     return abc
 
    #______________________ALGORITHM______________________________ 
 ########## this is SVM##########
-def svm(data, column, features, method, file_to_write):
+def impute(train_data,  test_data) :
+    train_data_impute = []
+   
+    test_data_impute = []
+   
+
+    for i in range(5):
+        
+        imputer = IterativeImputer(sample_posterior=True, random_state=i, verbose=1)
+        train_data_impute.append(imputer.fit_transform(train_data))
+        test_data_impute.append(imputer.transform(test_data))
+    train_data_impute = round(np.mean(train_data_impute, axis=0))
+    test_data_impute = round(np.mean(test_data_impute, axis=0))
+    
+    return train_data_impute,test_data_impute
+
+def KNN(data, column, features, method, file_to_write):
     skf = StratifiedKFold(n_splits=10)
     X = np.array(data.drop(columns = [column], axis = 1))
     y = np.array(data[column])
     top_features = {}
-    Cs = [0.1, 1, 10, 100, 1000]
-    dict = {'poly':[0]*len(Cs),'rbf':[0]*len(Cs), 'poly_boosted':[0]*len(Cs), 'poly_bagged':[0]*len(Cs), 'rbf_boosted':[0]*len(Cs), 'rbf_bagged':[0]*len(Cs)}
-    
-    
-    
+    dict = {}
+    neighbors = [1,2,3,4,5,6,7,8,9,10]
+    for neighbor in neighbors:
+        dict.update(str{neighbor}:[0,0,0,0])
     columns = data.drop(columns = [column], axis = 1).columns 
     for column in columns:
         top_features.update({column:0})
-        
     for train, test in skf.split(X,y):
-        # svm(data,X,y , train,test) 
-        # parameters = {'kernel':('poly', 'rbf'), 'C':[0.1, 1, 10, 100, 1000]}
-        # # grid = GridSearchCV(SVC(probability=True,kernel = 'poly' ), param_grid=parameters, refit = True, verbose = 3)
-        
-        train_data, test_data = X[train], X[test]
-        
+        train_data, test_data = X[train], X[test]  
+        train_data, test_data = impute(train_data, test_data)
         train_result, test_result = y[train], y[test] 
         train_data = pd.DataFrame(data = train_data, columns=columns)
         test_data = pd.DataFrame(data = test_data, columns=columns)
         features_selected = run_feature_selection(method,train_data,train_result,features, 'svm')
         
-        print(features_selected)
         for feature in features_selected:
             top_features[feature]+=1 
         train_data = np.array(train_data[features_selected])
         
         test_data = np.array(test_data[features_selected])
         
-       
-        
-        
-        
-        for kernel in ['poly', 'rbf']:
-            for method  in ['','_bagged','_boosted']:
-                name = kernel+method
-                scores = []
-                if method=='':
-                    for C in Cs  :
-                        boosted = SVC(probability=True,kernel = kernel, C=C)  
-                        boosted.fit(train_data, train_result)   
-                        predicted_label = boosted.predict(test_data)
-                        # print('boosted svm','kernel is', kernel, 'C is', C)
-                        score = metrics.accuracy_score(test_result,predicted_label)/10
-                        scores.append(score)
-                elif method =='_boosted':
-                    for C in Cs  :
-                        boosted = boost(SVC(probability=True,kernel = kernel, C=C)) 
-                        boosted.fit(train_data, train_result)   
-                        predicted_label = boosted.predict(test_data)
-                        # print('boosted svm','kernel is', kernel, 'C is', C)
-                        score = metrics.accuracy_score(test_result,predicted_label)/10
-                        scores.append(score)
-                else:
-                    for C in Cs  :
-                        boosted = bag(SVC(probability=True,kernel = kernel, C=C))  
-                        boosted.fit(train_data, train_result)   
-                        predicted_label = boosted.predict(test_data)
-                        # print('boosted svm','kernel is', kernel, 'C is', C)
-                        score = metrics.accuracy_score(test_result,predicted_label)/10
-                        scores.append(score)
-                    
-                
-                dict[name] = [a + b for a, b in zip(scores, dict[name])]
-    writer = pd.ExcelWriter(file_to_write)
-    df = pd.DataFrame([dict],index = ['Accuracy'])
-    df.to_excel(writer,'Accuracy')
-    columns = [k for k in top_features]
-    values = [v for v in top_features.values()]
-    names_scores = list(zip( columns, values))
-    ns_df = pd.DataFrame(data = names_scores, columns=['feature', 'scores'])
-    #Sort the dataframe for better visualization
-    ns_df_sorted = ns_df.sort_values( by = ['scores'], ascending = False)
-    ns_df_sorted.to_excel(writer,'Features')
+        for neighbor in neighbors:
+            knn=KNeighborsClassifier(n_neighbors=neighbor)
+            knn.fit(train_data,train_result)
+            predicted_label = knn.predict(test_data)
+            tn, fp, fn, tp = confusion_matrix(test_result, predicted_label).ravel()
+            convert_matrix = [tn,fp,fn,tp]
+            get_matrix = dict.get(name)
+            result = [convert_matrix[i]+get_matrix[i] for i in range(len(get_matrix))]
+            dict.update({name: result})
+            
+            
     
-    writer.save() 
+        
     
     
 
-                
-                
-            
         
-        
-        
-        
-        
-        
+
+
+
+
+def svm(data, column, features, method, file_to_write):
+    skf = StratifiedKFold(n_splits=10)
+    X = np.array(data.drop(columns = [column], axis = 1))
+    y = np.array(data[column])
+    top_features = {}
+    
+    Cs = [0.1, 0.3,0.5,0.7,0.9,1,4,7,10,100]
+    gammas = [0.1,0.3,0.5,0.7,0.9,1,4,7,10,100] 
+    degrees = [2,3,4,5]
+    kernels =['poly', 'linear', 'rbf']
+    dict_poly = {}
+    dict_linear = {}
+    dict_rbf = {}
+    
+    for c in Cs:
+        for gamma in gammas:
+            name = str(c)+','+str(gamma)
+            dict_linear.update({name:[0,0,0,0]})
+            dict_rbf.update({name:[0,0,0,0]})
+            for degree in degrees:
+                new_name = name+','+str(degree)
+                dict_poly.update({new_name:[0,0,0,0]})
+    
+
      
-
-
-
-
-
-
-
-
+    columns = data.drop(columns = [column], axis = 1).columns 
+    for column in columns:
+        top_features.update({column:0})
+        
+    for train, test in skf.split(X,y):
+        train_data, test_data = X[train], X[test]  
+        train_data, test_data = impute(train_data, test_data)
+        train_result, test_result = y[train], y[test] 
+        train_data = pd.DataFrame(data = train_data, columns=columns)
+        test_data = pd.DataFrame(data = test_data, columns=columns)
+        features_selected = run_feature_selection(method,train_data,train_result,features, 'svm')
+        
+        for feature in features_selected:
+            top_features[feature]+=1 
+        train_data = np.array(train_data[features_selected])
+        
+        test_data = np.array(test_data[features_selected])
         
         
+        for c in Cs:
+            for gamma in gammas:
+                name = str(c)+','+str(gamma)
+                linear = SVC(probability=True,kernel = 'linear', C=c, gamma=gamma)
+                linear.fit(train_data,train_result)
+                predicted_label = linear.predict(test_data)
+                tn, fp, fn, tp = confusion_matrix(test_result, predicted_label).ravel()
+                convert_matrix = [tn,fp,fn,tp]
+                get_matrix = dict_linear.get(name)
+                result = [convert_matrix[i]+get_matrix[i] for i in range(len(get_matrix))]
+                dict_linear.update({name: result})
                 
-            
-            
-    # print (' for kernel poly, accuracy scores for C = ', Cs)
-    # print ([x / 10 for x in dict['poly']])
-    # print (' for kernel rbf, accuracy scores for C = ', Cs)
-    # print ([x / 10 for x in dict['rbf']])
+                rbf = SVC(probability=True,kernel = 'rbf', C=c, gamma=gamma)
+                rbf.fit(train_data,train_result)
+                predicted_label = rbf.predict(test_data)
+                tn, fp, fn, tp = confusion_matrix(test_result, predicted_label).ravel()
+                convert_matrix = [tn,fp,fn,tp]
+                get_matrix = dict_rbf.get(name)
+                result = [convert_matrix[i]+get_matrix[i] for i in range(len(get_matrix))]
+                dict_rbf.update({name: result})
                 
-        # for kernel in ['poly', 'rbf']:
-        #     for C in   [0.1, 1, 10, 100, 1000]:
-        #         bagged = bag(SVC(probability=True,kernel = kernel, C=C))  
-        #         bagged.fit(train_data, train_result)   
-        #         predicted_label = bagged.predict(test_data)
-        #         print('bagged svm','kernel is', kernel, 'C is', C)
-        #         print(metrics.accuracy_score(test_result,predicted_label))
-                
-    # sum_accuracy =0```
-    # sum_precision = 0
-    # sum_recall = 0
-    # sum_f1 = 0
-    
-           
-        # print(accuracy_score(test_result, predicted_label))
-    #     sum_precision = precision_score(test_result, predicted_label,  average="macro")
-    #     sum_recall+= recall_score(test_result, predicted_label,  average="macro")
-    #     sum_f1+= f1_score(test_result, predicted_label,  average="macro")
-        
-    # print('average accuracy')
-    # print(sum_accuracy/10)
+                for degree in degrees:
+                    new_name = name+','+str(degree)
+                    poly = SVC(probability=True,kernel = 'poly', C=c, gamma=gamma, degree=degree)
+                    poly.fit(train_data,train_result)
+                    predicted_label = poly.predict(test_data)
+                    tn, fp, fn, tp = confusion_matrix(test_result, predicted_label).ravel()
+                    convert_matrix = [tn,fp,fn,tp]
+                    get_matrix = dict_poly.get(new_name)
+                    result = [convert_matrix[i]+get_matrix[i] for i in range(len(get_matrix))]
+                    dict_rbf.update({new_name: result})
+                              
+  
         
         
         
@@ -200,14 +216,21 @@ def rdforest(data, column, features, method, file_to_write):
     X = np.array(data.drop(columns = [column], axis = 1))
     y = np.array(data[column])
     top_features = {}
-    estimators = np.linspace(start = 20, stop = 200, num = 10)
-    dict = {'rdforest':[0]*len(estimators),'rdforest_bagged':[0]*len(estimators), 'rdforest_boosted':[0]*len(estimators)}
-    
+    dict = {}
+    estimators = [100, 200,300, 400, 500]
+    max_features = [5,10]
+    for estimator in estimators:
+        for max_feature in max_features:
+            name = str(estimator)+','+str(max_feature)
+            dict.update({name:[0,0,0,0]})
     columns = data.drop(columns = [column], axis = 1).columns 
     for column in columns:
         top_features.update({column:0})
+        
+        
     for train, test in skf.split(X,y):
         train_data, test_data = X[train], X[test]
+        train_data, test_data = impute(train_data, test_data)
         train_result, test_result = y[train], y[test]  
         train_data = pd.DataFrame(data = train_data, columns=columns)
         test_data = pd.DataFrame(data = test_data, columns=columns)
@@ -218,137 +241,60 @@ def rdforest(data, column, features, method, file_to_write):
         
         test_data = np.array(test_data[features_selected])
        
-        n_estimators = [int(x) for x in estimators]
-        methods = ['','_boosted','_bagged']
-        for method in methods:
-            name = 'rdforest'+method
-            scores = []
-            if method=='':
-                for n_est in n_estimators:
-                    classifier = RandomForestClassifier(n_estimators=35,  random_state=0)
-                    boosted = classifier
-                    boosted.fit(train_data, train_result)   
-                    predicted_label = boosted.predict(test_data)
-                    score = metrics.accuracy_score(test_result,predicted_label)/10
-                    
-                    scores.append(score)
-            elif method =='_boosted':
-                for n_est in n_estimators: 
-                    classifier = RandomForestClassifier(n_estimators=35,  random_state=0)
-                    boosted = boost(classifier)
-                    boosted.fit(train_data, train_result)   
-                    predicted_label = boosted.predict(test_data)
-                    score = metrics.accuracy_score(test_result,predicted_label)/10
-                    scores.append(score)
-            else:
-                for n_est in n_estimators:
-                    classifier = RandomForestClassifier(n_estimators=35, random_state=0)
-                    bagged = bag(classifier)
-                    bagged.fit(train_data, train_result)   
-                    predicted_label = boosted.predict(test_data)
-                    score = metrics.accuracy_score(test_result,predicted_label)/10
-                    scores.append(score)
+       
+        
+        for estimator in estimators:
+            for max_feature in max_features:
+                name = str(estimator)+','+str(max_feature)
+                classifier = RandomForestClassifier(n_estimators=estimator, max_features=max_feature,  random_state=0)
+                classifier.fit(train_data, train_result)   
+                predicted_label = boosted.predict(test_data)
+                tn, fp, fn, tp = confusion_matrix(test_result, predicted_label).ravel()
+                convert_matrix = [tn,fp,fn,tp]
+                get_matrix = dict.get(name)
+                result = [convert_matrix[i]+get_matrix[i] for i in range(len(get_matrix))]
+                dict.update({name: result})
+    return dict
+                   
             
-            dict[name] = [a + b for a, b in zip(scores, dict[name])]
-            # print(dict[name])
-    writer = pd.ExcelWriter(file_to_write)
-    df = pd.DataFrame([dict],index = ['Accuracy'])
-    df.to_excel(writer,'Accuracy')
-    columns = [k for k in top_features]
-    values = [v for v in top_features.values()]
-    names_scores = list(zip( columns, values))
-    ns_df = pd.DataFrame(data = names_scores, columns=['feature', 'scores'])
-    #Sort the dataframe for better visualization
-    ns_df_sorted = ns_df.sort_values( by = ['scores'], ascending = False)
-    ns_df_sorted.to_excel(writer,'Features')
+    # writer = pd.ExcelWriter(file_to_write)
+    # df = pd.DataFrame([dict],index = ['Accuracy'])
+    # df.to_excel(writer,'Accuracy')
+    # columns = [k for k in top_features]
+    # values = [v for v in top_features.values()]
+    # names_scores = list(zip( columns, values))
+    # ns_df = pd.DataFrame(data = names_scores, columns=['feature', 'scores'])
+    # #Sort the dataframe for better visualization
+    # ns_df_sorted = ns_df.sort_values( by = ['scores'], ascending = False)
+    # ns_df_sorted.to_excel(writer,'Features')
     
-    writer.save()  
+    # writer.save()  
     
     
-                    
-                
-                
-        
     
-            
-            
-            
-            
-            
-                
-            
-        
     
-  #####################Lasso Logictic Regression CV ################    
-def lasso(data,column, features, method, file_to_write):
-    skf = StratifiedKFold(n_splits=10)
-    X = np.array(data.drop(columns = [column], axis = 1))
-    y = np.array(data[column])
-    alphas = np.logspace(-4, -0.5, 30)
-    dict = {}
-    top_features = {}
-    for alpha in alphas:
-        
-        dict.update({alpha:0})
-    columns = data.drop(columns = [column], axis = 1).columns 
-    for column in columns:
-        top_features.update({column:0})
     
-   
-    for train, test in skf.split(X,y):
-        train_data, test_data = X[train], X[test]
-        train_result, test_result = y[train], y[test] 
-        
-        
-        train_data = pd.DataFrame(data = train_data, columns=columns)
-        test_data = pd.DataFrame(data = test_data, columns=columns)
-        features_selected = run_feature_selection(method,train_data,train_result,features, 'lasso')
-        
-        
-        
-        for feature in features_selected:
-            top_features[feature]+=1
-        train_data = np.array(train_data[features_selected])
-        
-        test_data = np.array(test_data[features_selected])
-        for alpha in alphas:
-            lasso = LogisticRegression()
-             
-            
-            lasso.fit(train_data, train_result)   
-            predicted_label = lasso.predict(test_data)>0.5
-            
-            dict[alpha] = dict[alpha]+metrics.accuracy_score(test_result,predicted_label)/10
-            
-    writer = pd.ExcelWriter(file_to_write)
-    df = pd.DataFrame([dict],index = ['Accuracy'])
-    df.to_excel(writer,'Accuracy')
-    columns = [k for k in top_features]
-    values = [v for v in top_features.values()]
-    names_scores = list(zip( columns, values))
-    ns_df = pd.DataFrame(data = names_scores, columns=['feature', 'scores'])
-    #Sort the dataframe for better visualization
-    ns_df_sorted = ns_df.sort_values( by = ['scores'], ascending = False)
-    ns_df_sorted.to_excel(writer,'Features')
     
-    writer.save()    
-        
-        
-        
 # ###########  ElasticNetCV  ##########      
         
 def elasticNet (data, column, features, method, file_to_write):
     skf = StratifiedKFold(n_splits=10)
     X = np.array(data.drop(columns = [column], axis = 1))
     y = np.array(data[column])
-    alphas= [0.0001, 0.001, 0.01, 0.1, 1, 10, 100]
-    l1s = [0.0,0.1,0.2,0.3,0.4,0.5,0.6,0.7,0.8,0.9,1.0]
-    dict = {}
     top_features = {}
+    alphas= np.logspace(-5,5,10)
+    l1s = np.linspace(0,1,11)
+    dict = {}
+    
     for alpha in alphas:
         for l1 in l1s:
             name = str(alpha)+','+str(l1)
-            dict.update({name:0})
+            dict.update({name:[0,0,0,0]})
+            
+  
+    
+    
+  
     columns = data.drop(columns = [column], axis = 1).columns 
     for column in columns:
         top_features.update({column:0})
@@ -359,6 +305,7 @@ def elasticNet (data, column, features, method, file_to_write):
     for train, test in skf.split(X,y):
         
         train_data, test_data = X[train], X[test]
+        train_data, test_data = impute(train_data, test_data)
         train_result, test_result = y[train], y[test]  
         train_data = pd.DataFrame(data = train_data, columns=columns)
         test_data = pd.DataFrame(data = test_data, columns=columns)
@@ -366,28 +313,40 @@ def elasticNet (data, column, features, method, file_to_write):
         
         for feature in features_selected:
             top_features[feature]+=1
+        train_data = np.array(train_data[features_selected])
+        
+        test_data = np.array(test_data[features_selected])
         
         for alpha in alphas:
             for l1 in l1s:
+                name = str(alpha)+','+str(l1)
                 regr = ElasticNet(alpha = alpha,l1_ratio = l1,random_state=0)
         
                 model = regr.fit(train_data, train_result)
                 predicted_label = model.predict(test_data)>0.5
-                name = str(alpha)+','+str(l1)
-                dict[name] = dict[name]+ metrics.accuracy_score(test_result,predicted_label)/10
+              
+                tn, fp, fn, tp = confusion_matrix(test_result, predicted_label).ravel()
+                convert_matrix = [tn,fp,fn,tp]
+                get_matrix = dict.get(name)
+                result = [convert_matrix[i]+get_matrix[i] for i in range(len(get_matrix))]
+                dict.update({name: result})
+  
+    return dict            
+                # name = str(alpha)+','+str(l1)
+                # dict[name] = dict[name]+ metrics.accuracy_score(test_result,predicted_label)/10
     
-    writer = pd.ExcelWriter(file_to_write)
-    df = pd.DataFrame([dict],index = ['Accuracy'])
-    df.to_excel(writer,'Accuracy')
-    columns = [k for k in top_features]
-    values = [v for v in top_features.values()]
-    names_scores = list(zip( columns, values))
-    ns_df = pd.DataFrame(data = names_scores, columns=['feature', 'scores'])
-    #Sort the dataframe for better visualization
-    ns_df_sorted = ns_df.sort_values( by = ['scores'], ascending = False)
-    ns_df_sorted.to_excel(writer,'Features')
+    # writer = pd.ExcelWriter(file_to_write)
+    # df = pd.DataFrame([dict],index = ['Accuracy'])
+    # df.to_excel(writer,'Accuracy')
+    # columns = [k for k in top_features]
+    # values = [v for v in top_features.values()]
+    # names_scores = list(zip( columns, values))
+    # ns_df = pd.DataFrame(data = names_scores, columns=['feature', 'scores'])
+    # #Sort the dataframe for better visualization
+    # ns_df_sorted = ns_df.sort_values( by = ['scores'], ascending = False)
+    # ns_df_sorted.to_excel(writer,'Features')
     
-    writer.save() 
+    # writer.save() 
     
     
                     
@@ -406,19 +365,19 @@ def elasticNet (data, column, features, method, file_to_write):
     
 # ########### decision tree classifier ##################
 def xgboost(data, column, features, method, file_to_write):   
-    skf = StratifiedKFold(n_splits=10) 
+    skf = StratifiedKFold(n_splits=10,shuffle = True, random_state = 10 ) 
     X = np.array(data.drop(columns = [column], axis = 1))
     y = np.array(data[column])
     top_features = {}
-    dict = {'score':0} 
+    dict = {} 
+    
     columns = data.drop(columns = [column],axis = 1).columns
     for column in columns:
         top_features.update({column:0})
-
-    
-        
+                
     for train, test in skf.split(X,y):   
         train_data, test_data = X[train], X[test]
+        train_data, test_data = impute(train_data, test_data)
         train_result, test_result = y[train], y[test] 
         train_data = pd.DataFrame(data = train_data, columns=columns)
         test_data = pd.DataFrame(data = test_data, columns=columns) 
@@ -432,18 +391,18 @@ def xgboost(data, column, features, method, file_to_write):
         
         test_data = np.array(test_data[features_selected])
         
-        scoring = ['f1', 'recall', 'precision']
+        scoring = ['f1']
 
         # XGBoost space
-        params_xgb = {'learning_rate': np.linspace(0, 1, 11),
+        params_xgb = {'learning_rate': np.linspace(0, 1, 6),
                     'min_split_loss': np.linspace(0, 1, 6),
                     'max_depth': np.linspace(2, 10, 5, dtype=int),
-                    'min_child_weight': np.linspace(1, 20, 20, dtype=int),
+                    'min_child_weight': np.linspace(1, 19, 10, dtype=int),
                     'colsample_bytree': np.linspace(0.5, 1, 6),
-                    'reg_alpha': np.linspace(0, 1, 11),
-                    'scale_pos_weight': np.linspace(4, 50, 24, dtype=int),
-                    'n_estimators': np.linspace(10, 450, 12, dtype=int),
-                    'reg_lambda': np.linspace(0, 10, 11),
+                    'reg_alpha': np.linspace(0, 5, 6),
+                    'scale_pos_weight': np.linspace(2, 10,5, dtype=int),
+                    'n_estimators': np.linspace(50, 400, 8, dtype=int),
+                    'reg_lambda': np.linspace(0, 5, 6)
                     }
 
         xgb= RandomizedSearchCV(estimator=XGBClassifier(booster='gbtree',
@@ -453,27 +412,36 @@ def xgboost(data, column, features, method, file_to_write):
                                                     param_distributions=params_xgb,
                                                     n_iter=250,
                                                     scoring=scoring,
+                                                    
                                                 
                                                     n_jobs=-1,
                                                    
                                                     verbose=1,
                                                     refit='f1')
 
-        xgb.fit(train_data, train_result)
-        ypred = xgb.predict(test_data)
-        dict['score']+=metrics.accuracy_score(test_result,ypred)/10
-    writer = pd.ExcelWriter(file_to_write)
-    df = pd.DataFrame([dict],index = ['Accuracy'])
-    df.to_excel(writer,'Accuracy')
-    columns = [k for k in top_features]
-    values = [v for v in top_features.values()]
-    names_scores = list(zip( columns, values))
-    ns_df = pd.DataFrame(data = names_scores, columns=['feature', 'scores'])
-    #Sort the dataframe for better visualization
-    ns_df_sorted = ns_df.sort_values( by = ['scores'], ascending = False)
-    ns_df_sorted.to_excel(writer,'Features')
+        search = xgb.fit(train_data, train_result)
+        predicted_label = search.predict(test_data)
+        tn, fp, fn, tp = confusion_matrix(test_result, predicted_label).ravel()
+        convert_matrix = [tn,fp,fn,tp]
+        params = search.best_params_
+
+        dict.update({'contingency': convert_matrix, 'params': params})
+        return dict
+        
+        
+    #     dict['score']+=metrics.accuracy_score(test_result,ypred)/10
+    # writer = pd.ExcelWriter(file_to_write)
+    # df = pd.DataFrame([dict],index = ['Accuracy'])
+    # df.to_excel(writer,'Accuracy')
+    # columns = [k for k in top_features]
+    # values = [v for v in top_features.values()]
+    # names_scores = list(zip( columns, values))
+    # ns_df = pd.DataFrame(data = names_scores, columns=['feature', 'scores'])
+    # #Sort the dataframe for better visualization
+    # ns_df_sorted = ns_df.sort_values( by = ['scores'], ascending = False)
+    # ns_df_sorted.to_excel(writer,'Features')
     
-    writer.save() 
+    # writer.save() 
         
     
         
@@ -483,8 +451,11 @@ def naive_bayes(data, column, features, method, file_to_write):
     skf = StratifiedKFold(n_splits=10) 
     X = np.array(data.drop(columns = [column], axis = 1))
     y = np.array(data[column])
-    dict = {'nb_G':0,'nb_G_boost':0, 'nb_G_bag':0,'nb_B':0,'nb_B_boost':0, 'nb_B_bag':0,}
     top_features = {}
+    dict_Gauss = {}
+    dict_Bernoulli = {}
+    
+    
     
     
     columns = data.drop(columns = [column], axis = 1).columns 
@@ -495,6 +466,7 @@ def naive_bayes(data, column, features, method, file_to_write):
     for train, test in skf.split(X,y):
         
         train_data, test_data = X[train], X[test]
+        train_data, test_data = impute(train_data, test_data)
         train_result, test_result = y[train], y[test]  
         train_data = pd.DataFrame(data = train_data, columns=columns)
         test_data = pd.DataFrame(data = test_data, columns=columns)
@@ -513,37 +485,37 @@ def naive_bayes(data, column, features, method, file_to_write):
         
         gnb = GaussianNB()
         predicted_label = gnb.fit(train_data, train_result).predict(test_data)
-        dict['nb_G'] = dict['nb_G']+metrics.accuracy_score(test_result,predicted_label)/10
-        gnb = boost(GaussianNB())
-        predicted_label = gnb.fit(train_data, train_result).predict(test_data)
-        dict['nb_G_boost'] = dict['nb_G_boost']+metrics.accuracy_score(test_result,predicted_label)/10
-        gnb = bag(GaussianNB())
-        predicted_label = gnb.fit(train_data, train_result).predict(test_data)
-        dict['nb_G_bag'] = dict['nb_G_bag']+metrics.accuracy_score(test_result,predicted_label)/10
+        tn, fp, fn, tp = confusion_matrix(test_result, predicted_label).ravel()
+        convert_matrix = [tn,fp,fn,tp]
+        dict_Gauss.update({'contingency': convert_matrix})
         
-        gnb = BernoulliNB(binarize=0.0)
+        
+        
+        gnb = BernoulliNB()
         predicted_label = gnb.fit(train_data, train_result).predict(test_data)
-        dict['nb_B'] = dict['nb_B']+metrics.accuracy_score(test_result,predicted_label)/10
-        gnb = boost(BernoulliNB(binarize=0.0))
-        predicted_label = gnb.fit(train_data, train_result).predict(test_data)
-        dict['nb_B_boost'] = dict['nb_B_boost']+metrics.accuracy_score(test_result,predicted_label)/10
-        gnb = bag(BernoulliNB(binarize=0.0))
-        predicted_label = gnb.fit(train_data, train_result).predict(test_data)
-        dict['nb_B_bag'] = dict['nb_B_bag']+metrics.accuracy_score(test_result,predicted_label)/10
+        tn, fp, fn, tp = confusion_matrix(test_result, predicted_label).ravel()
+        convert_matrix = [tn,fp,fn,tp]
+        dict_Bernoulli.update({'contingency': convert_matrix})
+        
         
        
-    writer = pd.ExcelWriter(file_to_write)
-    df = pd.DataFrame([dict],index = ['Accuracy'])
-    df.to_excel(writer,'Accuracy')
-    columns = [k for k in top_features]
-    values = [v for v in top_features.values()]
-    names_scores = list(zip( columns, values))
-    ns_df = pd.DataFrame(data = names_scores, columns=['feature', 'scores'])
-    #Sort the dataframe for better visualization
-    ns_df_sorted = ns_df.sort_values( by = ['scores'], ascending = False)
-    ns_df_sorted.to_excel(writer,'Features')
+    # writer = pd.ExcelWriter(file_to_write)
+    # df = pd.DataFrame([dict],index = ['Accuracy'])
+    # df.to_excel(writer,'Accuracy')
+    # columns = [k for k in top_features]
+    # values = [v for v in top_features.values()]
+    # names_scores = list(zip( columns, values))
+    # ns_df = pd.DataFrame(data = names_scores, columns=['feature', 'scores'])
+    # #Sort the dataframe for better visualization
+    # ns_df_sorted = ns_df.sort_values( by = ['scores'], ascending = False)
+    # ns_df_sorted.to_excel(writer,'Features')
     
-    writer.save() 
+    # writer.save() 
+    
+    
+def 
+    
+
         
 
     
@@ -565,3 +537,68 @@ def naive_bayes(data, column, features, method, file_to_write):
 
 
 
+
+    
+    
+                    
+                
+                
+        
+    
+            
+            
+            
+            
+            
+                
+            
+        
+
+    
+    
+def stats(data, column, file_to_write):
+    logit = sm.Logit(data[column], data.drop(columns = [column]), axis =1)
+    result = logit.fit()
+    
+    # fittedvalues = data[:, 2]
+    # predict_mean_se  = data[:, 3]
+    p_values = result.pvalues.to_frame()
+    p_values.columns = [''] * len(p_values.columns)
+    
+    CI = result.conf_int(alpha = 0.05)
+    CI = np.exp(CI)
+    CI.columns = [''] * len(CI.columns)
+    
+    coeff = np.exp(result.params.to_frame())
+    coeff.columns = [''] * len(coeff.columns)
+    
+    file_to_write.write('pvalues:')
+    file_to_write.write(p_values.to_string()+'\n')
+    
+    file_to_write.write('CI 95%:')
+    file_to_write.write(CI.to_string()+'\n')
+    file_to_write.write('odds ratio:')
+    file_to_write.write(coeff.to_string()+'\n')
+    
+def univariate_stats(data,column, file_to_write):
+    file_to_write.write('univariate wise: \n')
+    columns = data.drop(columns = [column]).columns
+    for col in columns:
+        logit = sm.Logit(data[column], data[col], axis =1)
+        coeff = np.exp(logit.fit().params.to_frame())
+        coeff.columns = [''] * len(coeff.columns)
+        
+        file_to_write.write(coeff.to_string())
+    
+
+    
+    
+    
+    
+    
+    
+    
+
+        
+        
+        
