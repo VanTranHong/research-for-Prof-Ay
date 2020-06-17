@@ -76,18 +76,47 @@ data = modify_data(data, [],data.columns)
 ############## 10 features infogain ##########
 elasticnet_dict_10 = []
 xgboost_dict_10=[]
-svm_dict_10=[]
+svm_linear_dict_10=[]
+svm_poly_dict_10=[]
+svm_rbf_dict_10=[]
 rdforest_dict_10=[]
 knn_dict_10=[]
-nb_dict_10 =[]
+nb_gauss_dict_10 =[]
+nb_bernoulli_dict_10 = []
 
 features =[]
 
 for i in range(10):
     dict,top_features = elasticNet(data,'HPYLORI', 10, 'infogain')
-    e
+    elasticnet_dict_10.append(dict)
+    features.append(top_features)
+    
+    dict, top_features = xgboost(data,'HPYLORI', 10, 'infogain')
+    xgboost_dict_10.append(dict)
+    features.append(top_features)
+    
+    dict, top_features = KNN(data,'HPYLORI', 10, 'infogain')
+    knn_dict_10.append(dict)
+    features.append(top_features)
+    
+    linear, poly, rbf, top_features = svm(data,'HPYLORI', 10, 'infogain')
+    svm_linear_dict_10.append(linear)
+    svm_poly_dict_10.append(poly)
+    svm_rbf_dict_10.append(rbf)
+    features.append(top_features)
+    
+    dict,top_features = rdforest(data,'HPYLORI', 10, 'infogain')
+    rdforest_dict_10.append(dict)
+    features.append(top_features)
+    
+    gauss, bernoulli, top_features = naive_bayes(data,'HPYLORI', 10, 'infogain')
+    nb_gauss_dict_10.append(gauss)
+    nb_bernoulli_dict_10.append(bernoulli)
+    features.append(top_features)
 
-)
+
+
+
     
     
 

@@ -368,7 +368,7 @@ def elasticNet (data, column, features, method):
     
     
 # ########### decision tree classifier ##################
-def xgboost(data, column, features, method, file_to_write, score):   
+def xgboost(data, column, features, method):   
     skf = StratifiedKFold(n_splits=10,shuffle = True, random_state = 10 ) 
     X = np.array(data.drop(columns = [column], axis = 1))
     y = np.array(data[column])
