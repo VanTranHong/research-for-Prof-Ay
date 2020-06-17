@@ -62,7 +62,7 @@ def get_PPV(contingency): # recall
 def get_accuracy(contingency): 
     return (contingency[0]+contingency[3])/(contingency[0]+contingency[1]+contingency[2]+contingency[3])
         
-def f1(dict, classfier):
+def f1(dict):
     keys = dict.keys()
     f1_dict= {}
     for key in keys:
@@ -113,4 +113,7 @@ def PPV(dict):
     Keymax = max(PPV_dict, key=PPV_dict.get) 
 
     return max(PPV_dict.values()), Keymax, dict.get(Keymax)
+
+def score(list_of_dict):
+    
     

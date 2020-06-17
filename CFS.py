@@ -8,7 +8,7 @@ def CFS(train_data,train_result,features):
     dict = {}
     for col in columns:
         for sub in dictionary.keys():
-            print(sub)
+            
             subset = sub+'_'+col
             score = evaluate(subset,dictionary)
             dict.update({subset:score})

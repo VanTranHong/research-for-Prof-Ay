@@ -136,8 +136,7 @@ def sfs(train_data, train_result, features, classifier):
         classifier = SVC()
     elif classifier == 'rdforest':
         classifier = RandomForestClassifier(n_estimators=100, n_jobs=-1)
-    elif classifier =='lasso':
-        classifier = LogisticRegression()
+   
     elif classifier == 'elasticNet':
         classifier = ElasticNet()
     elif classifier == 'xgboost':
