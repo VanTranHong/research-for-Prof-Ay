@@ -110,6 +110,7 @@ def KNN(data, column, features, method, file_to_write):
         test_data = np.array(test_data[features_selected])
         
         for neighbor in neighbors:
+            name=str(neighbor)
             knn=KNeighborsClassifier(n_neighbors=neighbor)
             knn.fit(train_data,train_result)
             predicted_label = knn.predict(test_data)
@@ -250,7 +251,7 @@ def rdforest(data, column, features, method, file_to_write):
                 name = str(estimator)+','+str(max_feature)
                 classifier = RandomForestClassifier(n_estimators=estimator, max_features=max_feature,  random_state=0)
                 classifier.fit(train_data, train_result)   
-                predicted_label = boosted.predict(test_data)
+                predicted_label = classifier.predict(test_data)
                 tn, fp, fn, tp = confusion_matrix(test_result, predicted_label).ravel()
                 convert_matrix = [tn,fp,fn,tp]
                 get_matrix = dict.get(name)
@@ -279,7 +280,7 @@ def rdforest(data, column, features, method, file_to_write):
     
 # ###########  ElasticNetCV  ##########      
         
-def elasticNet (data, column, features, method, file_to_write):
+def elasticNet (data, column, features, method):
     skf = StratifiedKFold(n_splits=10)
     X = np.array(data.drop(columns = [column], axis = 1))
     y = np.array(data[column])
@@ -367,12 +368,33 @@ def elasticNet (data, column, features, method, file_to_write):
     
     
 # ########### decision tree classifier ##################
-def xgboost(data, column, features, method, file_to_write):   
+def xgboost(data, column, features, method, file_to_write, score):   
     skf = StratifiedKFold(n_splits=10,shuffle = True, random_state = 10 ) 
     X = np.array(data.drop(columns = [column], axis = 1))
     y = np.array(data[column])
     top_features = {}
     dict = {} 
+    learning_rate= np.linspace(0, 1, 6)
+    min_split_loss= np.linspace(0, 1, 6)
+    max_depth = np.linspace(2, 10, 5, dtype=int)
+    min_child_weight = np.linspace(1, 19, 10, dtype=int)
+    colsample_bytree= np.linspace(0.5, 1, 6)
+    reg_alpha= np.linspace(0, 5, 6)
+    scale_pos_weight=np.linspace(2, 10,5, dtype=int)
+    n_estimators= np.linspace(50, 400, 8, dtype=int)
+    reg_lambda= np.linspace(0, 5, 6)
+    
+    for rate in learning_rate:
+        for split_loss in min_split_loss:
+            for depth in max_depth:
+                for child_weight in min_child_weight:
+                    for colsample in colsample_bytree:
+                        for alpha in reg_alpha:
+                            for pos_weight in scale_pos_weight:
+                                for n_est in n_estimators:
+                                    for lamda in reg_lambda:
+                                        name = str(rate)+','+str(split_loss)+','+str(depth)+','+str(child_weight)+','+str(colsample)+','+str(alpha)+','+str(pos_weight)+','+str(n_est)+','+str(lamda)
+                                        dict.update({name:[0,0,0,0]})
     
     columns = data.drop(columns = [column],axis = 1).columns
     for column in columns:
@@ -394,42 +416,54 @@ def xgboost(data, column, features, method, file_to_write):
         
         test_data = np.array(test_data[features_selected])
         
-        scoring = ['f1']
+        for rate in learning_rate:
+            for split_loss in min_split_loss:
+                for depth in max_depth:
+                    for child_weight in min_child_weight:
+                        for colsample in colsample_bytree:
+                            for alpha in reg_alpha:
+                                for pos_weight in scale_pos_weight:
+                                    for n_est in n_estimators:
+                                        for lamda in reg_lambda:
+                                            name = str(rate)+','+str(split_loss)+','+str(depth)+','+str(child_weight)+','+str(colsample)+','+str(alpha)+','+str(pos_weight)+','+str(n_est)+','+str(lamda)
+                                            xgb=XGBClassifier(booster='gbtree',learning_rate=rate,min_split_loss=split_loss,max_depth=depth,min_child_weight=child_weight,colsample_bytree=colsample,reg_alpha=alpha,scale_pos_weight=pos_weight,n_estimators=n_est,reg_lambda=lamda,
+                                                                            objective='binary:logistic',
+                                                                            nthread=1)
+                                            search = xgb.fit(train_data, train_result)
+                                            predicted_label = search.predict(test_data)
+                                            tn, fp, fn, tp = confusion_matrix(test_result, predicted_label).ravel()
+                                            convert_matrix = [tn,fp,fn,tp]
+                                            get_matrix = dict.get(name)
+                                            result = [convert_matrix[i]+get_matrix[i] for i in range(len(get_matrix))]
+                                            dict.update({name: result})
+                    
+
+    return dict, top_features
+                                            
+                                        
+    
+        
+        
 
         # XGBoost space
-        params_xgb = {'learning_rate': np.linspace(0, 1, 6),
-                    'min_split_loss': np.linspace(0, 1, 6),
-                    'max_depth': np.linspace(2, 10, 5, dtype=int),
-                    'min_child_weight': np.linspace(1, 19, 10, dtype=int),
-                    'colsample_bytree': np.linspace(0.5, 1, 6),
-                    'reg_alpha': np.linspace(0, 5, 6),
-                    'scale_pos_weight': np.linspace(2, 10,5, dtype=int),
-                    'n_estimators': np.linspace(50, 400, 8, dtype=int),
-                    'reg_lambda': np.linspace(0, 5, 6)
-                    }
+        # params_xgb = {
+        #             }
 
-        xgb= RandomizedSearchCV(estimator=XGBClassifier(booster='gbtree',
-                                                                            objective='binary:logistic',
+        # xgb= RandomizedSearchCV(estimator=XGBClassifier(booster='gbtree',
+        #                                                                     objective='binary:logistic',
                                                                             
-                                                                            nthread=1),
-                                                    param_distributions=params_xgb,
-                                                    n_iter=250,
-                                                    scoring=scoring,
+        #                                                                     nthread=1),
+        #                                             param_distributions=params_xgb,
+        #             -------------------------------------------------------                               n_iter=250,
+        #                                             scoring=score,
                                                     
                                                 
-                                                    n_jobs=-1,
+        #                                             n_jobs=-1,
                                                    
-                                                    verbose=1,
-                                                    refit='f1')
+        #                                             verbose=1,
+        #                                             refit='f1')
 
-        search = xgb.fit(train_data, train_result)
-        predicted_label = search.predict(test_data)
-        tn, fp, fn, tp = confusion_matrix(test_result, predicted_label).ravel()
-        convert_matrix = [tn,fp,fn,tp]
-        params = search.best_params_
-
-        dict.update({'contingency': convert_matrix, 'params': params})
-        return dict, top_features
+        
         
         
     #     dict['score']+=metrics.accuracy_score(test_result,ypred)/10
@@ -457,6 +491,8 @@ def naive_bayes(data, column, features, method, file_to_write):
     top_features = {}
     dict_Gauss = {}
     dict_Bernoulli = {}
+    dict_Gauss.update({'contingency': [0,0,0,0]})
+    dict_Bernoulli.update({'contingency': [0,0,0,0]})
     
     
     
@@ -490,7 +526,9 @@ def naive_bayes(data, column, features, method, file_to_write):
         predicted_label = gnb.fit(train_data, train_result).predict(test_data)
         tn, fp, fn, tp = confusion_matrix(test_result, predicted_label).ravel()
         convert_matrix = [tn,fp,fn,tp]
-        dict_Gauss.update({'contingency': convert_matrix})
+        get_matrix = dict_Gauss.get('contingency')
+        result = [convert_matrix[i]+get_matrix[i] for i in range(len(get_matrix))]
+        dict_Gauss.update({'contingency': result})
         
         
         
@@ -498,7 +536,9 @@ def naive_bayes(data, column, features, method, file_to_write):
         predicted_label = gnb.fit(train_data, train_result).predict(test_data)
         tn, fp, fn, tp = confusion_matrix(test_result, predicted_label).ravel()
         convert_matrix = [tn,fp,fn,tp]
-        dict_Bernoulli.update({'contingency': convert_matrix})
+        get_matrix = dict_Bernoulli.get('contingency')
+        result = [convert_matrix[i]+get_matrix[i] for i in range(len(get_matrix))]
+        dict_Bernoulli.update({'contingency': result})
     return dict_Gauss, dict_Bernoulli, top_features
         
         

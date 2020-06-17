@@ -53,10 +53,9 @@ datafile = r'/Users/vantran/Documents/vantran/info.csv'
 #######    main    ####
 data = pd.read_csv(datafile,skipinitialspace=True, header = 0)
 
-data.drop(['COLGATEID'], axis = 1, inplace = True)
 data = modify_data(data, [],data.columns)
 
-
+############ producing univariate and multivariet regression #########
 
 # stats_file = open('Stats.txt','w')
 # imputed_data = impute(data)
@@ -65,11 +64,50 @@ data = modify_data(data, [],data.columns)
 # univariate_stats(imputed_data,'HPYLORI',stats_file)
 # stats_file.close()
 
+
+########## baseline accuracy ##########
 # f = open('research_result.txt','w')
 # rate = sum(data['HPYLORI'])/data.shape[0]
 # f.write('base line accuracy is '+str( max(rate,1-rate))+'\n')
 # f.close()
 
+############# running 10 times 10-fold cross validation without boosting or bagging for 
+
+############## 10 features infogain ##########
+elasticnet_dict_10 = []
+xgboost_dict_10=[]
+svm_dict_10=[]
+rdforest_dict_10=[]
+knn_dict_10=[]
+nb_dict_10 =[]
+
+features =[]
+
+for i in range(10):
+    dict,top_features = elasticNet(data,'HPYLORI', 10, 'infogain')
+    e
+
+)
+    
+    
+
+
+
+
+
+
+############## 20 features infogain ###########
+
+
+########### 10 features reliefF ##############
+
+
+########## 20 features reliefF #############
+
+
+
+
+############# full###############
 
 
 
@@ -79,9 +117,16 @@ data = modify_data(data, [],data.columns)
 
 
 
-dictionary, top_features = elasticNet(data,'HPYLORI', 10, 'infogain', 'infogain_elastic.xlsx')
-print(dictionary)
-print(top_features)
+
+
+
+
+
+# dictionary, top_features = xgboost(data,'HPYLORI', 10, 'infogain', 'infogain_naive_bayes.xlsx','f1')
+
+
+
+
 # naive_bayes(data, 'HPYLORI',10, 'infogain','infogain_10_naive_bayes.xlsx')
 
 
