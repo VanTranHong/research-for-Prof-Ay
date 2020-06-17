@@ -29,8 +29,10 @@ from sklearn.experimental import enable_iterative_imputer
 from sklearn.impute import IterativeImputer
 ##########################################
 def remove_invalid_column(data):
+    
     data = data[data.columns[data.isnull().mean()<0.05]] #excluding columns with too many missing data
     data = data.select_dtypes(exclude=['object']) #excluding columns with wrong data type
+    data = data[data['HPYLORI'].notna()]
     return data
 
 def recategorize(df):
@@ -139,16 +141,18 @@ def create_dummies (data):
 # def normalize(data, numerical):
 #     data = preprocessing.StandardScaler().fit_transform(data[numerical])
 def impute(data):
+    columns = data.columns
     imputed_data = []
     for i in range(5):
         imputer = IterativeImputer(sample_posterior=True, random_state=i, verbose=1)
         imputed_data.append(imputer.fit_transform(data))
-    returned_data = round(np.mean(imputed_data,axis = 0))
+    returned_data = np.round(np.mean(imputed_data,axis = 0))
+    return_data = pd.DataFrame(data = returned_data, columns=columns)
         
     
     
 
-    return data
+    return return_data
     
     
     

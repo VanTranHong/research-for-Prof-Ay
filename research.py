@@ -32,8 +32,8 @@ from sklearn.model_selection import StratifiedKFold
 
 
 ##importing relevant fuctions from other files#####
-from classifiers import svm,rdforest, elasticNet,xgboost, naive_bayes,stats, univariate_stats
-from data_preprocess import modify_data
+from classifiers import svm,rdforest, elasticNet,xgboost, naive_bayes,stats, univariate_stats, KNN
+from data_preprocess import modify_data, impute
 from CFS import CFS
 from featureselection import infogain, reliefF,run_feature_selection,sfs
 
@@ -55,12 +55,14 @@ data = pd.read_csv(datafile,skipinitialspace=True, header = 0)
 
 data.drop(['COLGATEID'], axis = 1, inplace = True)
 data = modify_data(data, [],data.columns)
-# print(data)
+
 
 
 # stats_file = open('Stats.txt','w')
-# stats(data,'HPYLORI',stats_file)
-# univariate_stats(data,'HPYLORI',stats_file)
+# imputed_data = impute(data)
+# # print(imputed_data)
+# stats(imputed_data,'HPYLORI',stats_file)
+# univariate_stats(imputed_data,'HPYLORI',stats_file)
 # stats_file.close()
 
 # f = open('research_result.txt','w')
@@ -71,16 +73,16 @@ data = modify_data(data, [],data.columns)
 
 
 
-# subsetfile = r'/Users/vantran/Documents/vantran/subset.csv'
-# subset = pd.read_csv(subsetfile,skipinitialspace=True, header = 0)
-# subset.drop([ 'Unnamed: 0'], axis = 1, inplace = True)
 
 
 
 
 
-# svm(data,'HPYLORI', 10, 'infogain', 'infogain_svm.xlsx')
-naive_bayes(data, 'HPYLORI',10, 'infogain','infogain_10_naive_bayes.xlsx')
+
+dictionary, top_features = elasticNet(data,'HPYLORI', 10, 'infogain', 'infogain_elastic.xlsx')
+print(dictionary)
+print(top_features)
+# naive_bayes(data, 'HPYLORI',10, 'infogain','infogain_10_naive_bayes.xlsx')
 
 
 

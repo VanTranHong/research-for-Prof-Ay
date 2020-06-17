@@ -78,8 +78,8 @@ def impute(train_data,  test_data) :
         imputer = IterativeImputer(sample_posterior=True, random_state=i, verbose=1)
         train_data_impute.append(imputer.fit_transform(train_data))
         test_data_impute.append(imputer.transform(test_data))
-    train_data_impute = round(np.mean(train_data_impute, axis=0))
-    test_data_impute = round(np.mean(test_data_impute, axis=0))
+    train_data_impute = np.round(np.mean(train_data_impute, axis=0))
+    test_data_impute = np.round(np.mean(test_data_impute, axis=0))
     
     return train_data_impute,test_data_impute
 
@@ -91,7 +91,7 @@ def KNN(data, column, features, method, file_to_write):
     dict = {}
     neighbors = [1,2,3,4,5,6,7,8,9,10]
     for neighbor in neighbors:
-        dict.update(str{neighbor}:[0,0,0,0])
+        dict.update({str(neighbor):[0,0,0,0]})
     columns = data.drop(columns = [column], axis = 1).columns 
     for column in columns:
         top_features.update({column:0})
@@ -118,6 +118,7 @@ def KNN(data, column, features, method, file_to_write):
             get_matrix = dict.get(name)
             result = [convert_matrix[i]+get_matrix[i] for i in range(len(get_matrix))]
             dict.update({name: result})
+    return dict, top_features
             
             
     
@@ -205,6 +206,7 @@ def svm(data, column, features, method, file_to_write):
                     get_matrix = dict_poly.get(new_name)
                     result = [convert_matrix[i]+get_matrix[i] for i in range(len(get_matrix))]
                     dict_rbf.update({new_name: result})
+    return dict_linear, dict_poly, dict_rbf, top_features
                               
   
         
@@ -254,7 +256,7 @@ def rdforest(data, column, features, method, file_to_write):
                 get_matrix = dict.get(name)
                 result = [convert_matrix[i]+get_matrix[i] for i in range(len(get_matrix))]
                 dict.update({name: result})
-    return dict
+    return dict, top_features
                    
             
     # writer = pd.ExcelWriter(file_to_write)
@@ -316,9 +318,7 @@ def elasticNet (data, column, features, method, file_to_write):
         
         for feature in features_selected:
             top_features[feature]+=1
-        train_data = np.array(train_data[features_selected])
         
-        test_data = np.array(test_data[features_selected])
         
         for alpha in alphas:
             for l1 in l1s:
@@ -334,7 +334,7 @@ def elasticNet (data, column, features, method, file_to_write):
                 result = [convert_matrix[i]+get_matrix[i] for i in range(len(get_matrix))]
                 dict.update({name: result})
   
-    return dict            
+    return dict, top_features           
                 # name = str(alpha)+','+str(l1)
                 # dict[name] = dict[name]+ metrics.accuracy_score(test_result,predicted_label)/10
     
@@ -429,7 +429,7 @@ def xgboost(data, column, features, method, file_to_write):
         params = search.best_params_
 
         dict.update({'contingency': convert_matrix, 'params': params})
-        return dict
+        return dict, top_features
         
         
     #     dict['score']+=metrics.accuracy_score(test_result,ypred)/10
@@ -499,6 +499,7 @@ def naive_bayes(data, column, features, method, file_to_write):
         tn, fp, fn, tp = confusion_matrix(test_result, predicted_label).ravel()
         convert_matrix = [tn,fp,fn,tp]
         dict_Bernoulli.update({'contingency': convert_matrix})
+    return dict_Gauss, dict_Bernoulli, top_features
         
         
        
@@ -516,7 +517,7 @@ def naive_bayes(data, column, features, method, file_to_write):
     # writer.save() 
     
     
-def 
+
     
 
         

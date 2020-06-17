@@ -1,3 +1,54 @@
+import pandas as pd
+import numpy as np
+import math
+import csv
+import sklearn
+import random
+from sklearn.model_selection import train_test_split
+from sklearn.linear_model import LogisticRegression, Lasso, ElasticNet
+from sklearn.datasets import make_regression
+from sklearn.ensemble import AdaBoostClassifier
+from sklearn.ensemble import BaggingClassifier
+from sklearn.ensemble import RandomForestRegressor
+from xgboost import XGBClassifier
+from sklearn.metrics import confusion_matrix, f1_score, recall_score, precision_score, precision_recall_curve, auc
+from statsmodels.stats.outliers_influence import summary_table
+import statsmodels.api as sm
+import pylab as pl
+from sklearn.experimental import enable_iterative_imputer
+from sklearn.impute import IterativeImputer
+from sklearn.model_selection import KFold
+from sklearn import metrics
+from sklearn import preprocessing
+from sklearn.model_selection import cross_validate
+from sklearn.preprocessing import StandardScaler
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.metrics import classification_report, confusion_matrix, accuracy_score
+from sklearn import svm, datasets
+from sklearn.svm import SVC
+from sklearn.metrics import accuracy_score, f1_score, precision_score, recall_score, classification_report
+import scipy.stats as stats
+from scipy.stats import chi2_contingency
+from sklearn.feature_selection import SelectKBest 
+from sklearn.feature_selection import chi2 
+from sklearn.datasets import fetch_20newsgroups
+from sklearn.feature_selection import mutual_info_classif
+from sklearn.feature_extraction.text import CountVectorizer
+from sklearn.feature_selection import f_classif, chi2, mutual_info_classif
+from statsmodels.stats.multicomp import pairwise_tukeyhsd   
+from sklearn.model_selection import GridSearchCV
+from sklearn.model_selection import RandomizedSearchCV
+from sklearn.model_selection import StratifiedKFold
+from sklearn.tree import DecisionTreeClassifier
+from sklearn.neighbors import KNeighborsClassifier
+
+from sklearn.naive_bayes import GaussianNB
+from sklearn.naive_bayes import BernoulliNB
+
+from featureselection import infogain, reliefF, sfs,run_feature_selection
+from CFS import CFS
+from data_preprocess import impute
+
 def bag(classifier):
     abc = BaggingClassifier(base_estimator=classifier,n_estimators=50, random_state=0)
     return abc
@@ -17,7 +68,7 @@ def bag_svm(data, column, features, method, params, kernel):
     
     
     
-    if kernel =='poly' or 'linear'
+    if kernel =='poly' or 'linear':
         parameters = params.split(',')
         c= float(parameters[0])
         gamma = float(parameters[1])
