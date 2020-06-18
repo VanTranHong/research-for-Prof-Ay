@@ -49,9 +49,24 @@ from featureselection import infogain, reliefF, sfs,run_feature_selection
 from CFS import CFS
 from data_preprocess import impute
 
-def bag(classifier):
-    abc = BaggingClassifier(base_estimator=classifier,n_estimators=50, random_state=0)
+def bag(classifier,n_est):
+    abc = BaggingClassifier(base_estimator=classifier,n_estimators=n_est, random_state=0)
     return abc
+
+def run_bagging(data, column, features, method, parameters):
+    masterdict = {}
+    svm_linear_ = bag_svm(data, column, features, method,parameters[0],'linear')
+    svm_poly_ = bag_svm(data, column, features, method,parameters[1],'poly')
+    svm_rbf_ =bag_svm(data, column, features, method,parameters[2],'rbf')
+    rdforest_ = bag_rdforest(data, column, features, method,parameters[3])
+    knn_ = bag_knn(data, column, features, method,parameters[4])
+    nb_gauss_ = bag_naive_bayes(data, column, features, method,parameters[5],'Gaussian')
+    nb_bernoulli_ = bag_naive_bayes(data, column, features, method,parameters[5],'Bernoulli')
+    
+    masterdict.update({'svm_linear':svm_linear_, 'svm_poly': svm_poly_,'svm_rbf':svm_rbf_,'rdforest':rdforest_,'knn':knn_,'nb_gauss':nb_gauss_,'nb_bernoulli':nb_bernoulli_})
+    return masterdict
+    
+
 
 def bag_svm(data, column, features, method, params, kernel):
     skf = StratifiedKFold(n_splits=10)
@@ -68,7 +83,7 @@ def bag_svm(data, column, features, method, params, kernel):
     
     
     
-    if kernel =='poly' or 'linear':
+    if kernel =='rbf' or 'linear':
         parameters = params.split(',')
         c= float(parameters[0])
         gamma = float(parameters[1])
@@ -90,7 +105,7 @@ def bag_svm(data, column, features, method, params, kernel):
                 
                 name = str(n_est)
                 estimator = SVC(probability=True,kernel = kernel, C=c, gamma=gamma)
-                bag = bag(estimator, n_est,rate)  
+                bag = bag(estimator, n_est)  
                 bag.fit(train_data,train_result)
                 predicted_label = bag.predict(test_data)
                 tn, fp, fn, tp = confusion_matrix(test_result, predicted_label).ravel()
@@ -122,7 +137,7 @@ def bag_svm(data, column, features, method, params, kernel):
                 
                 name = str(n_est)
                 estimator = SVC(probability=True,kernel = kernel, C=c, gamma=gamma, degree = degree)
-                bag = bag(estimator, n_est,rate)  
+                bag = bag(estimator, n_est)  
                 bag.fit(train_data,train_result)
                 predicted_label = bag.predict(test_data)
                 tn, fp, fn, tp = confusion_matrix(test_result, predicted_label).ravel()
@@ -170,7 +185,7 @@ def bag_rdforest(data, column, features, method, params):
                 
                 name = str(n_est)
                 estimator = RandomForestClassifier(n_estimators=estimator, max_features=max_feature)
-                bag = bag(estimator, n_est,rate)  
+                bag = bag(estimator, n_est)  
                 bag.fit(train_data,train_result)
                 predicted_label = bag.predict(test_data)
                 tn, fp, fn, tp = confusion_matrix(test_result, predicted_label).ravel()
@@ -181,13 +196,13 @@ def bag_rdforest(data, column, features, method, params):
                 # estimator = RandomForestClassifier(n_estimators=estimator, max_features=max_feature)
     return dict
     
-def bag_naive_bayes(data, column, features, method, params):
+def bag_naive_bayes(data, column, features, method, params, kernel):
     skf = StratifiedKFold(n_splits=10)
     X = np.array(data.drop(columns = [column], axis = 1))
     y = np.array(data[column])
     top_features = {}
-    dict_Gauss = {}
-    dict_Bernoulli = {}
+    dict = {}
+   
     
     n_ests = [25,50,75,100]
    
@@ -223,25 +238,30 @@ def bag_naive_bayes(data, column, features, method, params):
         for n_est in n_ests:
             
             name = str(n_est)
-            estimator = GaussianNB()
-            bag = bag(estimator, n_est,rate)  
-            bag.fit(train_data,train_result)
-            predicted_label = bag.predict(test_data)
-            tn, fp, fn, tp = confusion_matrix(test_result, predicted_label).ravel()
-            convert_matrix = [tn,fp,fn,tp]
-            get_matrix = dict_Gauss.get(name)
-            result = [convert_matrix[i]+get_matrix[i] for i in range(len(get_matrix))]
-            dict_Gauss.update({name: result})
+            if kernel=='Gaussian'L
                 
-            estimator = BernoulliNB()
-            bag = bag(estimator, n_est,rate)  
-            bag.fit(train_data,train_result)
-            predicted_label = bag.predict(test_data)
-            tn, fp, fn, tp = confusion_matrix(test_result, predicted_label).ravel()
-            convert_matrix = [tn,fp,fn,tp]
-            get_matrix = dict_Bernoulli.get(name)
-            result = [convert_matrix[i]+get_matrix[i] for i in range(len(get_matrix))]
-            dict_Bernoulli.update({name: result})
+                estimator = GaussianNB()
+                bag = bag(estimator, n_est)  
+                bag.fit(train_data,train_result)
+                predicted_label = bag.predict(test_data)
+                tn, fp, fn, tp = confusion_matrix(test_result, predicted_label).ravel()
+                convert_matrix = [tn,fp,fn,tp]
+                get_matrix = dict.get(name)
+                result = [convert_matrix[i]+get_matrix[i] for i in range(len(get_matrix))]
+                dict.update({name: result})
+            else:
+                
+                estimator = BernoulliNB()
+                bag = bag(estimator, n_est)  
+                bag.fit(train_data,train_result)
+                predicted_label = bag.predict(test_data)
+                tn, fp, fn, tp = confusion_matrix(test_result, predicted_label).ravel()
+                convert_matrix = [tn,fp,fn,tp]
+                get_matrix = dict.get(name)
+                result = [convert_matrix[i]+get_matrix[i] for i in range(len(get_matrix))]
+                dict.update({name: result})
+    return dict
+    
             
 def bag_knn(data, column, features, method, params):
     skf = StratifiedKFold(n_splits=10)
@@ -282,7 +302,7 @@ def bag_knn(data, column, features, method, params):
             
             name = str(n_est)
             estimator = KNeighborsClassifier(n_neighbors=neighbor)
-            bag = bag(estimator, n_est,rate)  
+            bag = bag(estimator, n_est)  
             bag.fit(train_data,train_result)
             predicted_label = bag.predict(test_data)
             tn, fp, fn, tp = confusion_matrix(test_result, predicted_label).ravel()
@@ -290,5 +310,6 @@ def bag_knn(data, column, features, method, params):
             get_matrix = dict.get(name)
             result = [convert_matrix[i]+get_matrix[i] for i in range(len(get_matrix))]
             dict.update({name: result})
+    return dict
     
     

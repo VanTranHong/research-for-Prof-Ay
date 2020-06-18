@@ -53,6 +53,22 @@ def boost (classifier, n_est, rate):
     abc = AdaBoostClassifier(n_estimators = n_est, base_estimator=classifier, learning_rate =rate)
     return abc
 
+
+def run_boosting(data, column, features, method, parameters):
+    masterdict = {}
+    svm_linear_ = boost_svm(data, column, features, method,parameters[0],'linear')
+    svm_poly_ = boost_svm(data, column, features, method,parameters[1],'poly')
+    svm_rbf_ =boost_svm(data, column, features, method,parameters[2],'rbf')
+    rdforest_ = boost_rdforest(data, column, features, method,parameters[3])
+    knn_ = boost_knn(data, column, features, method,parameters[4])
+    nb_gauss_ = boost_naive_bayes(data, column, features, method,parameters[5],'Gaussian')
+    nb_bernoulli_ = boost_naive_bayes(data, column, features, method,parameters[5],'Bernoulli')
+    
+    masterdict.update({'svm_linear':svm_linear_, 'svm_poly': svm_poly_,'svm_rbf':svm_rbf_,'rdforest':rdforest_,'knn':knn_,'nb_gauss':nb_gauss_,'nb_bernoulli':nb_bernoulli_})
+    return masterdict
+        
+    
+
 def boost_knn(data, column, features, method, params):
     skf = StratifiedKFold(n_splits=10)
     X = np.array(data.drop(columns = [column], axis = 1))
