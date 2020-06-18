@@ -113,7 +113,7 @@ for metric in sfs_run.keys():
     scoring = score_by_metric(sfs_run, metric)
 ########## WITH BOOSTING ##############
     parameters = getparameter(scoring, metric)
-    boost result = run_boosting(data, 'HPYLORI', features, feature_selection,parameters, metric)
+    boost_result = run_boosting(data, 'HPYLORI', features, feature_selection,parameters, metric)
     
     #### this give us the result for boosting
 ##################  WITH BAGGING ##########################      
