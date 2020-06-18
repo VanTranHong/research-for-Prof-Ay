@@ -724,209 +724,136 @@ for i in range(10):
 
 ############# full###############
 
-elasticnet_full = []
-xgboost_full=[]
-svm_linear_full=[]
-svm_poly_full=[]
-svm_rbf_full=[]
-rdforest_full=[]
-knn_full=[]
-nb_gauss_full =[]
-nb_bernoulli_full = []
+
+svm_linear_full_boost=[]
+svm_poly_full_boost=[]
+svm_rbf_full_boost=[]
+rdforest_full_boost=[]
+knn_full_boost=[]
+nb_gauss_full_boost =[]
+nb_bernoulli_full_boost = []
+
 
 
 
 
 for i in range(10):
-    dict,top_features = elasticNet(data,'HPYLORI', data.shape[1]-1, 'reliefF')
-    elasticnet_full.append(dict)
+    dict = boost_knn(data,'HPYLORI', data.shape[1]-1, 'infogain',knn_full_param)
+    knn_full_boost.append(dict)
+    
+    
+    linear = boost_svm(data,'HPYLORI', data.shape[1]-1, 'infogain',svm_linear_full_param,'linear')
+    svm_linear_full_boost.append(linear)
+    
+    poly = boost_svm(data,'HPYLORI', data.shape[1]-1, 'infogain',svm_poly_full_param,'poly')
+    svm_poly_full_boost.append(poly)
+    
+    rbf = boost_svm(data,'HPYLORI', data.shape[1]-1, 'infogain',svm_rbf_full_param ,'rbf')
+    svm_rbf_full_boost.append(rbf)
+    
+    
+    dict = boost_rdforest(data,'HPYLORI', data.shape[1]-1,, 'infogain',rdforest_full_param)
+    rdforest_full_boost.append(dict)
  
     
-    dict, top_features = xgboost(data,'HPYLORI', data.shape[1]-1, 'reliefF')
-    xgboost_full.append(dict)
+    gauss= boost_naive_bayes(data,'HPYLORI', data.shape[1]-1,, 'infogain',nb_gauss_full_param,'Gaussian')
+    nb_gauss_full_boost.append(gauss)
     
+    bernoulli= boost_naive_bayes(data,'HPYLORI', data.shape[1]-1,, 'infogain',nb_bernoulli_full_param,'Bernoulli')
+    nb_bernoulli_full_boost.append(bernoulli)
+
     
-    dict, top_features = KNN(data,'HPYLORI', data.shape[1]-1, 'reliefF')
-    knn_full.append(dict)
    
-    
-    linear, poly, rbf, top_features = svm(data,'HPYLORI', data.shape[1]-1, 'reliefF')
-    svm_linear_full.append(linear)
-    svm_poly_full.append(poly)
-    svm_rbf_full.append(rbf)
-  
-    
-    dict,top_features = rdforest(data,'HPYLORI', data.shape[1]-1, 'reliefF')
-    rdforest_full.append(dict)
-    features_full .append(top_features)
-    
-    gauss, bernoulli, top_features = naive_bayes(data,'HPYLORI', data.shape[1]-1, 'reliefF')
-    nb_gauss_full.append(gauss)
-    nb_bernoulli_full.append(bernoulli)
-    features_full.append(top_features)
-    
     
     
 ##################sfs##################
 
+svm_linear_sfs_boost=[]
+svm_poly_sfs_boost=[]
+svm_rbf_sfs_boost=[]
+rdforest_sfs_boost=[]
+knn_sfs_boost=[]
+nb_gauss_sfs_boost =[]
+nb_bernoulli_sfs_boost = []
 
 
-elasticnet_sfs = []
-xgboost_sfs =[]
-svm_linear_sfs =[]
-svm_poly_sfs =[]
-svm_rbf_sfs =[]
-rdforest_sfs =[]
-knn_sfs =[]
-nb_gauss_sfs  =[]
-nb_bernoulli_sfs  = []
-
-features_sfs = []
 
 
 
 for i in range(10):
-    dict,top_features = elasticNet(data,'HPYLORI', data.shape[1]-1, 'sfs')
-    elasticnet_sfs.append(dict)
-    features_sfs.append(top_features)
+    dict = boost_knn(data,'HPYLORI', data.shape[1]-1, 'sfs',knn_sfs_param)
+    knn_sfs_boost.append(dict)
     
+    
+    linear = boost_svm(data,'HPYLORI', data.shape[1]-1, 'sfs',svm_linear_sfs_param,'linear')
+    svm_linear_sfs_boost.append(linear)
+    
+    poly = boost_svm(data,'HPYLORI', data.shape[1]-1, 'sfs',svm_poly_sfs_param,'poly')
+    svm_poly_full_boost.append(poly)
+    
+    rbf = boost_svm(data,'HPYLORI', data.shape[1]-1, 'sfs',svm_rbf_sfs_param ,'rbf')
+    svm_rbf_sfs_boost.append(rbf)
+    
+    
+    dict = boost_rdforest(data,'HPYLORI', data.shape[1]-1,, 'sfs',rdforest_sfs_param)
+    rdforest_sfs_boost.append(dict)
  
     
-    dict, top_features = xgboost(data,'HPYLORI', data.shape[1]-1, 'sfs')
-    xgboost_sfs.append(dict)
-    features_sfs.append(top_features)
+    gauss= boost_naive_bayes(data,'HPYLORI', data.shape[1]-1,, 'sfs',nb_gauss_sfs_param,'Gaussian')
+    nb_gauss_sfs_boost.append(gauss)
     
-    
-    dict, top_features = KNN(data,'HPYLORI', data.shape[1]-1, 'sfs')
-    knn_sfs.append(dict)
-    features_sfs.append(top_features)
-   
-    
-    linear, poly, rbf, top_features = svm(data,'HPYLORI', data.shape[1]-1, 'sfs')
-    svm_linear_sfs.append(linear)
-    svm_poly_sfs.append(poly)
-    svm_rbf_sfs.append(rbf)
-    features_sfs.append(top_features)
-  
-    
-    dict,top_features = rdforest(data,'HPYLORI', data.shape[1]-1, 'sfs')
-    rdforest_sfs.append(dict)
-    features_sfs .append(top_features)
-    features_sfs.append(top_features)
-    
-    gauss, bernoulli, top_features = naive_bayes(data,'HPYLORI', data.shape[1]-1, 'sfs')
-    nb_gauss_sfs.append(gauss)
-    nb_bernoulli_sfs.append(bernoulli)
-    features_sfs.append(top_features)
-    features_sfs.append(top_features)
+    bernoulli= boost_naive_bayes(data,'HPYLORI', data.shape[1]-1,, 'sfs',nb_bernoulli_sfs_param,'Bernoulli')
+    nb_bernoulli_sfs_boost.append(bernoulli)
+
+
+
+
+
     
     
     ################## CFS ##################
 
 
+svm_linear_CFS_boost=[]
+svm_poly_CFS_boost=[]
+svm_rbf_CFS_boost=[]
+rdforest_CFS_boost=[]
+knn_CFS_boost=[]
+nb_gauss_CFS_boost =[]
+nb_bernoulli_CFS_boost = []
 
-elasticnet_CFS = []
-xgboost_CFS =[]
-svm_linear_CFS =[]
-svm_poly_CFS =[]
-svm_rbf_CFS =[]
-rdforest_CFS =[]
-knn_CFS =[]
-nb_gauss_CFS  =[]
-nb_bernoulli_CFS = []
 
-features_CFS = []
 
 
 
 for i in range(10):
-    dict,top_features = elasticNet(data,'HPYLORI', data.shape[1]-1, 'CFS')
-    elasticnet_CFS.append(dict)
-    features_CFS.append(top_features)
+    dict = boost_knn(data,'HPYLORI', data.shape[1]-1, 'CFS',knn_CFS_param)
+    knn_CFS_boost.append(dict)
     
+    
+    linear = boost_svm(data,'HPYLORI', data.shape[1]-1, 'CFS',svm_linear_CFS_param,'linear')
+    svm_linear_sfs_boost.append(linear)
+    
+    poly = boost_svm(data,'HPYLORI', data.shape[1]-1, 'CFS',svm_poly_CFS_param,'poly')
+    svm_poly_CFS_boost.append(poly)
+    
+    rbf = boost_svm(data,'HPYLORI', data.shape[1]-1, 'CFS',svm_rbf_CFS_param ,'rbf')
+    svm_rbf_CFS_boost.append(rbf)
+    
+    
+    dict = boost_rdforest(data,'HPYLORI', data.shape[1]-1,, 'CFS',rdforest_CFS_param)
+    rdforest_CFS_boost.append(dict)
  
     
-    dict, top_features = xgboost(data,'HPYLORI', data.shape[1]-1, 'CFS')
-    xgboost_CFS.append(dict)
-    features_CFS.append(top_features)
+    gauss= boost_naive_bayes(data,'HPYLORI', data.shape[1]-1,, 'CFS',nb_gauss_CFS_param,'Gaussian')
+    nb_gauss_CFS_boost.append(gauss)
     
-    
-    dict, top_features = KNN(data,'HPYLORI', data.shape[1]-1, 'CFS')
-    knn_CFS.append(dict)
-    features_CFS.append(top_features)
-   
-    
-    linear, poly, rbf, top_features = svm(data,'HPYLORI', data.shape[1]-1, 'CFS')
-    svm_linear_CFS.append(linear)
-    svm_poly_CFS.append(poly)
-    svm_rbf_CFS.append(rbf)
-    features_CFS.append(top_features)
-  
-    
-    dict,top_features = rdforest(data,'HPYLORI', data.shape[1]-1, 'CFS')
-    rdforest_CFS.append(dict)
-    features_CFS .append(top_features)
-    features_CFS.append(top_features)
-    
-    gauss, bernoulli, top_features = naive_bayes(data,'HPYLORI', data.shape[1]-1, 'CFS')
-    nb_gauss_CFS.append(gauss)
-    nb_bernoulli_CFS.append(bernoulli)
-    
-    features_CFS.append(top_features)
+    bernoulli= boost_naive_bayes(data,'HPYLORI', data.shape[1]-1,, 'CFS',nb_bernoulli_CFS_param,'Bernoulli')
+    nb_bernoulli_CFS_boost.append(bernoulli)
 
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-    
-    
-    
-    
-    
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-# dictionary, top_features = xgboost(data,'HPYLORI', 10, 'infogain', 'infogain_naive_bayes.xlsx','f1')
-
-
-
-
-# naive_bayes(data, 'HPYLORI',10, 'infogain','infogain_10_naive_bayes.xlsx')
-
-
-
-    
 
 
 
