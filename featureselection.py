@@ -59,7 +59,7 @@ def infogain(train_data, train_result, features):
   
     return ns_df_sorted.iloc[:features,0]
     
-def run_feature_selection(method,train_data,train_result,features,classifier):
+def run_feature_selection(method,train_data,train_result,features,classifier, metric):
     if method == 'infogain':
         return infogain(train_data,train_result,features)
     elif method == 'reliefF':
@@ -67,7 +67,7 @@ def run_feature_selection(method,train_data,train_result,features,classifier):
     elif method == 'CFS':
         return CFS(train_data,train_result,features)
     else:
-        return sfs(train_data,train_result,features, classifier)
+        return sfs(train_data,train_result,features, classifier, metric)
         
         
         
@@ -105,30 +105,10 @@ def reliefF(train_data, train_result, features):
 
 
 
-# ############### feature selection using SequentialFeatureSekector,a Subset Method using python #############
-# X_train, X_test, y_train, y_test = train_test_split(data.drop(['Hpylori']),data['Hpylori'], test_size = 0.1, stratify = data['Hpylori'], random_state = random_seed)   
-# feature_selector = SequentialFeatureSelector(RandomForestClassifier(n_jobs=-1),
-#            k_features=15,
-#            forward=True,
-#            verbose=2,
-#            scoring='roc_auc',
-#            cv=5)
-# features = feature_selector.fit(X_train, y_train)
-# filtered_features= train_features.columns[list(features.k_feature_idx_)]
 
-# ################ feature selection (subset method) using exhaustive feature selection in python ############
-# X_train, X_test, y_train, y_test = train_test_split(data.drop(['Hpylori']),data['Hpylori'], test_size = 0.1, stratify = data['Hpylori'], random_state = random_seed)   
-# feature_selector = ExhaustiveFeatureSelector(RandomForestClassifier(n_jobs=-1),
-#            min_features=10,
-#            max_features=20,
-#            scoring='roc_auc',
-#            print_progress=True,
-#            cv=5)
-# features = feature_selector.fit(X_train, y_train)
-# filtered_features= train_features.columns[list(features.k_feature_idx_)]
 
 # ################## feature selection using SFS ##############
-def sfs(train_data, train_result, features, classifier):  
+def sfs(train_data, train_result, features, classifier, metric):  
     columns = train_data.columns
     X = np.array(train_data).astype(float)
     y = np.array(train_result).astype(float)
@@ -136,6 +116,8 @@ def sfs(train_data, train_result, features, classifier):
         classifier = SVC()
     elif classifier == 'rdforest':
         classifier = RandomForestClassifier(n_estimators=100, n_jobs=-1)
+    elif classifier == 'knn':
+        classifier = KNeighborsClassifier()
    
     elif classifier == 'elasticNet':
         classifier = ElasticNet()
@@ -145,7 +127,7 @@ def sfs(train_data, train_result, features, classifier):
         classifier = BernoulliNB(binarize=0.0)
         
     
-    sfs = SFS(classifier, k_features=(1,len(columns)), forward=True, floating=True, scoring='f1', verbose=1, cv=0, n_jobs=-1)
+    sfs = SFS(classifier, k_features=(1,len(columns)), forward=True, floating=True, scoring=metric, verbose=1, cv=0, n_jobs=-1)
     
     sfs.fit(X, y)
     index = list(sfs.k_feature_names_)

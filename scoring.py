@@ -162,7 +162,7 @@ def PPV(dict): ####dict is a list of dict of contingency
 
 def score(dict_dict):
     master_dict = {}
-    methods = dict_dict.keys
+    methods = dict_dict.keys()
     for method in methods: #### for each method elasticNet, xgboost and so on..
         innerdict = {}
         f1_ = {}
@@ -189,6 +189,37 @@ def score(dict_dict):
         innerdict.update({'f1':f1_, 'accuracy':accuracy_, 'precision':precision_, 'PPV':PPV_, 'MMC':MMC_})
         master_dict.update({method:innerdict})
     return master_dict
+
+
+
+########### this is done for sfs it will only evaluate based on 1 metric given by parameter
+def score_by_metric(dict_dict, metric):
+    master = {}
+    for method in dict_dict.keys():
+        innerdict = {}
+        if metric =='f1':
+            highest, params, contingency = f1(method)
+            
+        elif metric =='accuracy':
+            highest, params, contingency = accuracy(method)
+            
+        elif metric =='precision':
+            highest, params, contingency = precision(method)
+            
+        elif metric =='recall':
+            highest, params, contingency = PPV(method)
+            
+            
+        else:
+            highest, params, contingency = MMC(method)
+        innerdict.update({'value':highest,'params':params,'contingency':contingency})
+        master.update({method:innerdict})
+    return master
+        
+        
+            
+            
+        
         
         
        

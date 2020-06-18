@@ -41,7 +41,7 @@ from featureselection import infogain, reliefF,run_feature_selection,sfs
 
 
 masterkey = {}
-runs = ['infogain,10','infogain,20','reliefF,10', 'reliefF20','infogain,data.shape[1]-1', 'sfs,data.shape[1]-1', 'CFS,data.shape[1]-1']
+runs = ['infogain,10','infogain,20','reliefF,10', 'reliefF20','infogain,data.shape[1]-1', 'CFS,data.shape[1]-1']
 for name in runs:
     insidedict={}
     masterkey.update({name:insidedict})
@@ -54,6 +54,63 @@ def run(data, column):
         insidedict = masterkey.get(run)
         insidedict.update({'elasticnet':elasticnet_,'xgboost':xgboost_,'svm_linear':svm_linear_, 'svm_poly': svm_poly_,'svm_rbf':svm_rbf_,'rdforest':rdforest_,'knn':knn_,'nb_gauss':nb_gauss_,'nb_bernoulli':nb_bernoulli_,'features':features_ })
     return masterkey
+
+def run_sfs(data, column):
+    features = data.shape[1]-1
+    feature_selection = 'sfs'
+    master = {}
+    for metric in ['f1', 'accuracy','precision','recall','MMC']:
+        innerdict =  {}
+        elasticnet_ = []
+        xgboost_=[]
+        svm_linear_=[]
+        svm_poly_=[]
+        svm_rbf_=[]
+        rdforest_=[]
+        knn_=[]
+        nb_gauss_ =[]
+        nb_bernoulli_= []
+        
+        features_ = []
+        
+        for i in range(10):
+            dict,top_features = elasticNet(data,column, features, feature_selection, metric)
+            elasticnet_.append(dict)
+            features_.append(top_features)
+            
+            dict, top_features = xgboost(data,column, features, feature_selection, metric)
+            xgboost_.append(dict)
+            features_.append(top_features)
+            
+            dict, top_features = KNN(data,column, features, feature_selection, metric)
+            knn_.append(dict)
+            features_.append(top_features)
+            
+            linear, poly, rbf, top_features = svm(data,column, features, feature_selection, metric)
+            svm_linear_.append(linear)
+            svm_poly_.append(poly)
+            svm_rbf_.append(rbf)
+            features_.append(top_features)
+            
+            dict,top_features = rdforest(data,column, features, feature_selection, metric)
+            rdforest_.append(dict)
+            features_.append(top_features)
+            
+            gauss, bernoulli, top_features = naive_bayes(data,column, features, feature_selection, metric)
+            nb_gauss_.append(gauss)
+            nb_bernoulli_.append(bernoulli)
+            features_.append(top_features)
+        innerdict.update({'elasticnet':elasticnet_,'xgboost':xgboost_,'svm_linear':svm_linear_, 'svm_poly': svm_poly_,'svm_rbf':svm_rbf_,'rdforest':rdforest_,'knn':knn_,'nb_gauss':nb_gauss_,'nb_bernoulli':nb_bernoulli_,'features':features_ })
+        master.update({metric:innerdict})
+    return master
+    
+        
+        
+        
+        
+        
+        
+    
         
 
 
@@ -77,29 +134,29 @@ def normal_run(run, data, column):
     features_ = []
     
     for i in range(10):
-        dict,top_features = elasticNet(data,column, features, feature_selection)
+        dict,top_features = elasticNet(data,column, features, feature_selection, metric)
         elasticnet_.append(dict)
         features_.append(top_features)
         
-        dict, top_features = xgboost(data,column, features, feature_selection)
+        dict, top_features = xgboost(data,column, features, feature_selection, metric)
         xgboost_.append(dict)
         features_.append(top_features)
         
-        dict, top_features = KNN(data,column, features, feature_selection)
+        dict, top_features = KNN(data,column, features, feature_selection, metric)
         knn_.append(dict)
         features_.append(top_features)
         
-        linear, poly, rbf, top_features = svm(data,column, features, feature_selection)
+        linear, poly, rbf, top_features = svm(data,column, features, feature_selection, metric)
         svm_linear_.append(linear)
         svm_poly_.append(poly)
         svm_rbf_.append(rbf)
         features_.append(top_features)
         
-        dict,top_features = rdforest(data,column, features, feature_selection)
+        dict,top_features = rdforest(data,column, features, feature_selection, metric)
         rdforest_.append(dict)
         features_.append(top_features)
         
-        gauss, bernoulli, top_features = naive_bayes(data,column, features, feature_selection)
+        gauss, bernoulli, top_features = naive_bayes(data,column, features, feature_selection, metric)
         nb_gauss_.append(gauss)
         nb_bernoulli_.append(bernoulli)
         features_.append(top_features)

@@ -12,8 +12,6 @@ def CFS(train_data,train_result,features):
             subset = sub+'_'+col
             score = evaluate(subset,dictionary)
             dict.update({subset:score})
-            
-       
         score = evaluate(col,dictionary)
         dict.update({col:score})
     print(dict)

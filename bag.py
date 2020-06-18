@@ -55,13 +55,13 @@ def bag(classifier,n_est):
 
 def run_bagging(data, column, features, method, parameters):
     masterdict = {}
-    svm_linear_ = bag_svm(data, column, features, method,parameters[0],'linear')
-    svm_poly_ = bag_svm(data, column, features, method,parameters[1],'poly')
-    svm_rbf_ =bag_svm(data, column, features, method,parameters[2],'rbf')
-    rdforest_ = bag_rdforest(data, column, features, method,parameters[3])
-    knn_ = bag_knn(data, column, features, method,parameters[4])
-    nb_gauss_ = bag_naive_bayes(data, column, features, method,parameters[5],'Gaussian')
-    nb_bernoulli_ = bag_naive_bayes(data, column, features, method,parameters[5],'Bernoulli')
+    svm_linear_ = bag_svm(data, column, features, method,parameters[0],'linear', metric)
+    svm_poly_ = bag_svm(data, column, features, method,parameters[1],'poly', metric)
+    svm_rbf_ =bag_svm(data, column, features, method,parameters[2],'rbf', metric)
+    rdforest_ = bag_rdforest(data, column, features, method,parameters[3], metric)
+    knn_ = bag_knn(data, column, features, method,parameters[4], metric)
+    nb_gauss_ = bag_naive_bayes(data, column, features, method,parameters[5],'Gaussian', metric)
+    nb_bernoulli_ = bag_naive_bayes(data, column, features, method,parameters[5],'Bernoulli', metric)
     
     masterdict.update({'svm_linear':svm_linear_, 'svm_poly': svm_poly_,'svm_rbf':svm_rbf_,'rdforest':rdforest_,'knn':knn_,'nb_gauss':nb_gauss_,'nb_bernoulli':nb_bernoulli_})
     return masterdict
@@ -94,7 +94,7 @@ def bag_svm(data, column, features, method, params, kernel):
             train_result, test_result = y[train], y[test] 
             train_data = pd.DataFrame(data = train_data, columns=columns)
             test_data = pd.DataFrame(data = test_data, columns=columns)
-            features_selected = run_feature_selection(method,train_data,train_result,features, 'svm')
+            features_selected = run_feature_selection(method,train_data,train_result,features, 'svm', metric)
         
             for feature in features_selected:
                 top_features[feature]+=1 
@@ -126,7 +126,7 @@ def bag_svm(data, column, features, method, params, kernel):
             train_result, test_result = y[train], y[test] 
             train_data = pd.DataFrame(data = train_data, columns=columns)
             test_data = pd.DataFrame(data = test_data, columns=columns)
-            features_selected = run_feature_selection(method,train_data,train_result,features, 'svm')
+            features_selected = run_feature_selection(method,train_data,train_result,features, 'svm', metric)
         
             for feature in features_selected:
                 top_features[feature]+=1 
@@ -174,7 +174,7 @@ def bag_rdforest(data, column, features, method, params):
         train_result, test_result = y[train], y[test] 
         train_data = pd.DataFrame(data = train_data, columns=columns)
         test_data = pd.DataFrame(data = test_data, columns=columns)
-        features_selected = run_feature_selection(method,train_data,train_result,features, 'svm')
+        features_selected = run_feature_selection(method,train_data,train_result,features, 'svm', metric)
         
         for feature in features_selected:
             top_features[feature]+=1 
@@ -225,7 +225,7 @@ def bag_naive_bayes(data, column, features, method, params, kernel):
         train_result, test_result = y[train], y[test]  
         train_data = pd.DataFrame(data = train_data, columns=columns)
         test_data = pd.DataFrame(data = test_data, columns=columns)
-        features_selected = run_feature_selection(method,train_data,train_result,features, 'naive_bayes')
+        features_selected = run_feature_selection(method,train_data,train_result,features, 'naive_bayes', metric)
        
         
         for feature in features_selected:
@@ -288,7 +288,7 @@ def bag_knn(data, column, features, method, params):
         train_result, test_result = y[train], y[test]  
         train_data = pd.DataFrame(data = train_data, columns=columns)
         test_data = pd.DataFrame(data = test_data, columns=columns)
-        features_selected = run_feature_selection(method,train_data,train_result,features, 'naive_bayes')
+        features_selected = run_feature_selection(method,train_data,train_result,features, 'naive_bayes', metric)
        
         
         for feature in features_selected:

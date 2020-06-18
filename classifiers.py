@@ -83,7 +83,7 @@ def impute(train_data,  test_data) :
     
     return train_data_impute,test_data_impute
 
-def KNN(data, column, features, method, file_to_write):
+def KNN(data, column, features, method,  metric):
     skf = StratifiedKFold(n_splits=10)
     X = np.array(data.drop(columns = [column], axis = 1))
     y = np.array(data[column])
@@ -101,7 +101,7 @@ def KNN(data, column, features, method, file_to_write):
         train_result, test_result = y[train], y[test] 
         train_data = pd.DataFrame(data = train_data, columns=columns)
         test_data = pd.DataFrame(data = test_data, columns=columns)
-        features_selected = run_feature_selection(method,train_data,train_result,features, 'svm')
+        features_selected = run_feature_selection(method,train_data,train_result,features, 'KNN', metric)
         
         for feature in features_selected:
             top_features[feature]+=1 
@@ -132,7 +132,7 @@ def KNN(data, column, features, method, file_to_write):
 
 
 
-def svm(data, column, features, method, file_to_write):
+def svm(data, column, features, method, metric):
     skf = StratifiedKFold(n_splits=10)
     X = np.array(data.drop(columns = [column], axis = 1))
     y = np.array(data[column])
@@ -167,7 +167,7 @@ def svm(data, column, features, method, file_to_write):
         train_result, test_result = y[train], y[test] 
         train_data = pd.DataFrame(data = train_data, columns=columns)
         test_data = pd.DataFrame(data = test_data, columns=columns)
-        features_selected = run_feature_selection(method,train_data,train_result,features, 'svm')
+        features_selected = run_feature_selection(method,train_data,train_result,features, 'svm', metric)
         
         for feature in features_selected:
             top_features[feature]+=1 
@@ -214,7 +214,7 @@ def svm(data, column, features, method, file_to_write):
         
         
 #########Random Forest Classification #################        
-def rdforest(data, column, features, method, file_to_write):
+def rdforest(data, column, features, method, metric):
     skf = StratifiedKFold(n_splits=10)
     X = np.array(data.drop(columns = [column], axis = 1))
     y = np.array(data[column])
@@ -237,7 +237,7 @@ def rdforest(data, column, features, method, file_to_write):
         train_result, test_result = y[train], y[test]  
         train_data = pd.DataFrame(data = train_data, columns=columns)
         test_data = pd.DataFrame(data = test_data, columns=columns)
-        features_selected = run_feature_selection(method,train_data,train_result,features, 'rdforest')
+        features_selected = run_feature_selection(method,train_data,train_result,features, 'rdforest', metric)
         for feature in features_selected:
             top_features[feature]+=1
         train_data = np.array(train_data[features_selected])
@@ -280,7 +280,7 @@ def rdforest(data, column, features, method, file_to_write):
     
 # ###########  ElasticNetCV  ##########      
         
-def elasticNet (data, column, features, method):
+def elasticNet (data, column, features, method, metric):
     skf = StratifiedKFold(n_splits=10)
     X = np.array(data.drop(columns = [column], axis = 1))
     y = np.array(data[column])
@@ -312,7 +312,7 @@ def elasticNet (data, column, features, method):
         train_result, test_result = y[train], y[test]  
         train_data = pd.DataFrame(data = train_data, columns=columns)
         test_data = pd.DataFrame(data = test_data, columns=columns)
-        features_selected = run_feature_selection(method,train_data,train_result,features, 'elasticNet')
+        features_selected = run_feature_selection(method,train_data,train_result,features, 'elasticNet', metric)
         train_data = np.array(train_data[features_selected])
         
         test_data = np.array(test_data[features_selected])
@@ -368,7 +368,7 @@ def elasticNet (data, column, features, method):
     
     
 # ########### decision tree classifier ##################
-def xgboost(data, column, features, method):   
+def xgboost(data, column, features, method, metric):   
     skf = StratifiedKFold(n_splits=10,shuffle = True, random_state = 10 ) 
     X = np.array(data.drop(columns = [column], axis = 1))
     y = np.array(data[column])
@@ -406,7 +406,7 @@ def xgboost(data, column, features, method):
         train_result, test_result = y[train], y[test] 
         train_data = pd.DataFrame(data = train_data, columns=columns)
         test_data = pd.DataFrame(data = test_data, columns=columns) 
-        features_selected = run_feature_selection(method,train_data,train_result,features, 'xgboost')
+        features_selected = run_feature_selection(method,train_data,train_result,features, 'xgboost', metric)
         
         for feature in features_selected:
             top_features[feature]+=1
@@ -484,7 +484,7 @@ def xgboost(data, column, features, method):
         
 
 ################ naive bayes classifier###############
-def naive_bayes(data, column, features, method, file_to_write):
+def naive_bayes(data, column, features, method,metric):
     skf = StratifiedKFold(n_splits=10) 
     X = np.array(data.drop(columns = [column], axis = 1))
     y = np.array(data[column])
@@ -509,7 +509,7 @@ def naive_bayes(data, column, features, method, file_to_write):
         train_result, test_result = y[train], y[test]  
         train_data = pd.DataFrame(data = train_data, columns=columns)
         test_data = pd.DataFrame(data = test_data, columns=columns)
-        features_selected = run_feature_selection(method,train_data,train_result,features, 'naive_bayes')
+        features_selected = run_feature_selection(method,train_data,train_result,features, 'naive_bayes', metric)
        
         
         for feature in features_selected:
