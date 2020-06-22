@@ -47,7 +47,7 @@ from sklearn.naive_bayes import GaussianNB
 from sklearn.naive_bayes import BernoulliNB
 
 from featureselection import infogain, reliefF, sfs,run_feature_selection
-from CFS import CFS
+from CFS import CFS, powerset
 from data_preprocess import impute
 
 
@@ -313,6 +313,7 @@ def elasticNet (data, column, features, method, metric):
         train_data = pd.DataFrame(data = train_data, columns=columns)
         test_data = pd.DataFrame(data = test_data, columns=columns)
         features_selected = run_feature_selection(method,train_data,train_result,features, 'elasticNet', metric)
+        print(features_selected)
         train_data = np.array(train_data[features_selected])
         
         test_data = np.array(test_data[features_selected])

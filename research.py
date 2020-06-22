@@ -32,9 +32,9 @@ from sklearn.model_selection import StratifiedKFold
 
 
 ##importing relevant fuctions from other files#####
-from classifiers import svm,rdforest, elasticNet,xgboost, naive_bayes,stats, univariate_stats, KNN
+from classifiers import svm,rdforest, elasticNet,xgboost, naive_bayes,stats, univariate_stats, KNN, imputeH
 from data_preprocess import modify_data, impute
-from CFS import CFS
+from CFS import CFS, powerset
 from featureselection import infogain, reliefF,run_feature_selection,sfs
 from normal_run import run
 
@@ -58,27 +58,30 @@ data = modify_data(data, [],data.columns)
 
 ############ producing univariate and multivariet regression #########
 
-# stats_file = open('Stats.txt','w')
-# imputed_data = impute(data)
-# # print(imputed_data)
-# stats(imputed_data,'HPYLORI',stats_file)
-# univariate_stats(imputed_data,'HPYLORI',stats_file)
-# stats_file.close()
+stats_file = open('Stats.txt','w')
+imputed_data = impute(data)
+# print(imputed_data)
+stats(imputed_data,'HPYLORI',stats_file)
+univariate_stats(imputed_data,'HPYLORI',stats_file)
+stats_file.close()
 
 
-########## baseline accuracy ##########
-# f = open('research_result.txt','w')
-# rate = sum(data['HPYLORI'])/data.shape[0]
-# f.write('base line accuracy is '+str( max(rate,1-rate))+'\n')
-# f.close()
+######### baseline accuracy ##########
+f = open('research_result.txt','w')
+rate = sum(data['HPYLORI'])/data.shape[0]
+f.write('base line accuracy is '+str( max(rate,1-rate))+'\n')
+f.close()
 
 
 
 
 
-###################### RUNNING WITHOUT BOOSTING AND BAGGING for all ranking feature selections and CFS###############
 
-normalrun_masterkey = run(data, column)
+
+
+##################### RUNNING WITHOUT BOOSTING AND BAGGING for all ranking feature selections and CFS###############
+
+normalrun_masterkey = run(data, 'HPYLORI')
 
 runs = normalrun_masterkey.keys()
 

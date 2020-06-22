@@ -59,7 +59,7 @@ def run_sfs(data, column):
     features = data.shape[1]-1
     feature_selection = 'sfs'
     master = {}
-    for metric in ['f1', 'accuracy','precision','recall','MMC']:
+    for metric in ['f1', 'accuracy','precision','recall']:
         innerdict =  {}
         elasticnet_ = []
         xgboost_=[]
@@ -134,29 +134,29 @@ def normal_run(run, data, column):
     features_ = []
     
     for i in range(10):
-        dict,top_features = elasticNet(data,column, features, feature_selection, metric)
+        dict,top_features = elasticNet(data,column, features, feature_selection,'f1')
         elasticnet_.append(dict)
         features_.append(top_features)
         
-        dict, top_features = xgboost(data,column, features, feature_selection, metric)
+        dict, top_features = xgboost(data,column, features, feature_selection, 'f1')
         xgboost_.append(dict)
         features_.append(top_features)
         
-        dict, top_features = KNN(data,column, features, feature_selection, metric)
+        dict, top_features = KNN(data,column, features, feature_selection, 'f1')
         knn_.append(dict)
         features_.append(top_features)
         
-        linear, poly, rbf, top_features = svm(data,column, features, feature_selection, metric)
+        linear, poly, rbf, top_features = svm(data,column, features, feature_selection, 'f1')
         svm_linear_.append(linear)
         svm_poly_.append(poly)
         svm_rbf_.append(rbf)
         features_.append(top_features)
         
-        dict,top_features = rdforest(data,column, features, feature_selection, metric)
+        dict,top_features = rdforest(data,column, features, feature_selection, 'f1')
         rdforest_.append(dict)
         features_.append(top_features)
         
-        gauss, bernoulli, top_features = naive_bayes(data,column, features, feature_selection, metric)
+        gauss, bernoulli, top_features = naive_bayes(data,column, features, feature_selection, 'f1')
         nb_gauss_.append(gauss)
         nb_bernoulli_.append(bernoulli)
         features_.append(top_features)
