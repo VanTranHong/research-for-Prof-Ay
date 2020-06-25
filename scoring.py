@@ -42,7 +42,7 @@ def score(files, n_seed):
             average_array[i] = [sum(acc)/n_seed,sum(prec)/n_seed,sum(rec)/n_seed,sum(f)/n_seed]
 
         averages = pd.DataFrame(average_array, columns=['Average Accuracy','Average Precision','Average Recall','Average F1'])
-        final_df = pd.concat([df.iloc[:,range(df.shape[1]-2)], averages],axis=1)
+        final_df = pd.concat([df.iloc[:,range(df.shape[1]-n_seed)], averages],axis=1)
         final_df.to_csv(filename+'score.csv',index=False)
             
         
