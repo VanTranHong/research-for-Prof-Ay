@@ -35,7 +35,7 @@ data1 = data1.dropna()
 
 ##################### RUNNING WITHOUT BOOSTING AND BAGGING for all ranking feature selections and CFS###############
 
-score.score(nr.normal_run(data1,n_seed=2,splits=5),2)
+score.score(nr.normal_run(data1,n_seed=1,splits=2,estimators=['rdforest']),1,2)
     
 
 
