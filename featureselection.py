@@ -5,7 +5,7 @@ from mlxtend.feature_selection import SequentialFeatureSelector as SFS
 from sklearn.svm import LinearSVC, SVC
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.naive_bayes import GaussianNB
-from skfeature.function.information_theoretical_based import FCBF
+import FCBF
 
 def infogain(X, y, n_features):
     """Runs infogain feature selection on the data (X) and the target values (y) and finds
@@ -41,6 +41,11 @@ def reliefF(X, y, n_features):
     index = fs.top_features[:n_features]
     return index
 
+def cfs(X, y):
+    selection = FCBF.fcbf(X, y)
+    index = list(selection[0])
+    index.sort()
+    return index
 
 def run_feature_selection(method,X,y,n_features):
     """Runs the specific ranking based feature selection method.
@@ -59,22 +64,10 @@ def run_feature_selection(method,X,y,n_features):
     elif method == 'reliefF':
         return reliefF(X,y,n_features)
     else:
-        return cfs(X_train, y_train, n_features)
-
-def run_subset_selection(selector, X_train, y_train, n_features, estimator):
-    if selector == 'sfs':
-        return sfs(X_train, y_train, n_features, estimator)
+        return cfs(X, y)
 
 
-def sfs(X_train, y_train, n_features, estimator): 
-    if estimator == 'rdforest' or estimator == 'rdforest_bag' or estimator == 'rdforest_boost':
-        algorithm = RandomForestClassifier(n_estimators=300, random_state=0)
-    elif estimator == 'svm' or estimator == 'svm_bag':
-        algorithm = LinearSVC(C=0.1, random_state=0, max_iter=10000)
-    elif estimator == 'knn':
-        algorithm = KNeighborsClassifier(n_neighbors=5)
-    elif estimator == 'naive_bayes':
-        algorithm = GaussianNB()
-    sfs1 = SFS(algorithm, k_features=n_features, forward=True, floating=False, scoring='accuracy', cv=0)
+def sfs(X_train, y_train, estimator): 
+    sfs1 = SFS(estimator, k_features=(1,5), forward=True, floating=False, scoring='accuracy', cv=0)
     sfs1 = sfs1.fit(X_train, y_train)
     return sfs1.k_feature_idx_

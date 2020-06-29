@@ -1,5 +1,6 @@
 import pandas as pd
 import numpy as np
+import featureselection as fselect
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.metrics import confusion_matrix
 from sklearn.svm import LinearSVC, SVC
@@ -66,9 +67,9 @@ def SVM(X_train,X_test,y_train,y_test):
 
     return df
 
-def SVM_bag(X_train,X_test,y_train,y_test, n_est):
+def SVM_subset(X_train, X_test, y_train, y_test):
 
-    df = pd.DataFrame(columns=['Kernel','C','Gamma','Degree','Bag_Estimators','Confusion Matrix'])
+    df = pd.DataFrame(columns=['Kernel','C','Gamma','Degree','Features','Confusion Matrix'])
     rows = []
 
     Cs = [1e-3, 1e-2, 1e-1, 1, 1e1, 1e2, 1e3]
@@ -77,100 +78,62 @@ def SVM_bag(X_train,X_test,y_train,y_test, n_est):
 
     for c in Cs:
         linear = LinearSVC(C=c, random_state=0, max_iter=10000)
-        abc = BaggingClassifier(n_estimators = n_est, base_estimator=linear, random_state=0)
-        predicted_labels = abc.predict(X_test)
+        selection_linear = fselect.sfs(X_train, y_train, linear)
+        X_train_linear, X_test_linear = X_train[:,selection_linear], X_test[:,selection_linear]
+
+        linear.fit(X_train_linear, y_train)
+        predicted_labels = linear.predict(X_test_linear)
         tn, fp, fn, tp = confusion_matrix(y_test, predicted_labels, labels=[0,1]).ravel()
         convert_matrix = [tn,fp,fn,tp]
-        rows.append(['linear', c, '', '', n_est, convert_matrix])
+        rows.append(['linear', c, '', '',selection_linear, convert_matrix])
 
         for gamma in gammas:
             rbf = SVC(kernel = 'rbf', C=c, gamma=gamma, random_state=0, max_iter=10000)
-            abc = BaggingClassifier(n_estimators = n_est, base_estimator=rbf, random_state=0)
-            predicted_labels = abc.predict(X_test)
+            selection_rbf = fselect.sfs(X_train, y_train, rbf)
+            X_train_rbf, X_test_rbf = X_train[:,selection_rbf], X_test[:,selection_rbf]
+
+            rbf.fit(X_train_rbf, y_train)
+            predicted_labels = rbf.predict(X_test_rbf)
             tn, fp, fn, tp = confusion_matrix(y_test, predicted_labels, labels=[0,1]).ravel()
             convert_matrix = [tn,fp,fn,tp]
-            rows.append(['rbf', c, gamma, '', n_est, convert_matrix])
+            rows.append(['rbf', c, gamma, '',selection_rbf, convert_matrix])
 
             for degree in degrees:
                 poly = SVC(kernel='poly', C=c, gamma=gamma, degree=degree, random_state=0, max_iter=10000)
-                abc = BaggingClassifier(n_estimators = n_est, base_estimator=poly, random_state=0)
-                abc.fit(X_train,y_train)
-                predicted_labels = abc.predict(X_test)
+                selection_poly = fselect.sfs(X_train, y_train, poly)
+                X_train_poly, X_test_poly = X_train[:,selection_poly], X_test[:,selection_poly]
+
+                poly.fit(X_train_poly,y_train)
+                predicted_labels = poly.predict(X_test_poly)
                 tn, fp, fn, tp = confusion_matrix(y_test, predicted_labels, labels=[0,1]).ravel()
                 convert_matrix = [tn,fp,fn,tp]
-                rows.append(['poly', c, gamma, degree, n_est, convert_matrix])
+                rows.append(['poly', c, gamma, degree, selection_poly, convert_matrix])
 
     for i in range(len(rows)):
         df = df.append({'Kernel':rows[i][0],'C':rows[i][1],'Gamma':rows[i][2], 'Degree':rows[i][3],
-        'Bag_Estimators':rows[i][4],'Confusion Matrix':rows[i][5]}, ignore_index=True)
+        'Features':rows[i][4],'Confusion Matrix':rows[i][5]}, ignore_index=True)
 
     return df
 
+
 def rdforest(X_train,X_test,y_train,y_test):
-    df = pd.DataFrame(columns=['N_Estimators','Max_Features','Confusion Matrix'])
+    df = pd.DataFrame(columns=['N_Estimators','Max_Depth','Confusion Matrix'])
     rows = []
     
     estimators = [100, 200,300, 400, 500]
-    max_features = [5,10]
+    max_depths = [10,30,50,70]
 
     for estimator in estimators:
-        for max_feature in max_features:
-            rdf = RandomForestClassifier(n_estimators=estimator, max_features=max_feature,  random_state=0)
+        for max_d in max_depths:
+            rdf = RandomForestClassifier(n_estimators=estimator, max_depth=max_d,  random_state=0, n_jobs=-1)
             rdf.fit(X_train, y_train)
             predicted_labels = rdf.predict(X_test)
             tn, fp, fn, tp = confusion_matrix(y_test, predicted_labels, labels=[0,1]).ravel()
             convert_matrix = [tn,fp,fn,tp]
-            rows.append([estimator, max_feature, convert_matrix])
+            rows.append([estimator, max_d, convert_matrix])
     
     for i in range(len(rows)):
-        df = df.append({'N_Estimators':rows[i][0],'Max_Features':rows[i][1],'Confusion Matrix':rows[i][2]}, ignore_index=True)
-
-    return df
-
-def rdforest_boost(X_train,X_test,y_train,y_test,n_est, rate):
-    df = pd.DataFrame(columns=['N_Estimators','Max_Features','Boost_Estimators','Rate','Confusion Matrix'])
-    rows = []
-    
-    estimators = [100, 200]
-    max_features = [5,10]
-
-    for estimator in estimators:
-        for max_feature in max_features:
-            rdf = RandomForestClassifier(n_estimators=estimator, max_features=max_feature,  random_state=0)
-            abc = AdaBoostClassifier(n_estimators = n_est, base_estimator=rdf, learning_rate =rate)
-            abc.fit(X_train, y_train)
-            predicted_labels = abc.predict(X_test)
-            tn, fp, fn, tp = confusion_matrix(y_test, predicted_labels, labels=[0,1]).ravel()
-            convert_matrix = [tn,fp,fn,tp]
-            rows.append([estimator, max_feature, n_est, rate, convert_matrix])
-    
-    for i in range(len(rows)):
-        df = df.append({'N_Estimators':rows[i][0],'Max_Features':rows[i][1],
-                        'Boost_Estimators':rows[i][2], 'Rate':rows[i][3],
-                        'Confusion Matrix':rows[i][4]}, ignore_index=True)
-
-    return df
-
-def rdforest_bag(X_train,X_test,y_train,y_test,n_est):
-    df = pd.DataFrame(columns=['N_Estimators','Max_Features','Bag_Estimators','Confusion Matrix'])
-    rows = []
-    
-    estimators = [100, 200]
-    max_features = [5]
-
-    for estimator in estimators:
-        for max_feature in max_features:
-            rdf = RandomForestClassifier(n_estimators=estimator, max_features=max_feature,  random_state=0)
-            abc = BaggingClassifier(n_estimators = n_est, base_estimator=rdf, random_state=0)
-            abc.fit(X_train, y_train)
-            predicted_labels = abc.predict(X_test)
-            tn, fp, fn, tp = confusion_matrix(y_test, predicted_labels, labels=[0,1]).ravel()
-            convert_matrix = [tn,fp,fn,tp]
-            rows.append([estimator, max_feature, n_est, convert_matrix])
-    
-    for i in range(len(rows)):
-        df = df.append({'N_Estimators':rows[i][0],'Max_Features':rows[i][1],
-                        'Bag_Estimators':rows[i][2], 'Confusion Matrix':rows[i][3]}, ignore_index=True)
+        df = df.append({'N_Estimators':rows[i][0],'Max_Depth':rows[i][1],'Confusion Matrix':rows[i][2]}, ignore_index=True)
 
     return df
 
@@ -243,10 +206,8 @@ def classify(estimator, X_train, X_test, y_train, y_test, n_est=None, rate=None)
         return rdforest(X_train, X_test, y_train, y_test)
     elif estimator == 'knn':
         return KNN(X_train, X_test, y_train, y_test)
-    elif estimator == 'rdforest_boost':
-        return rdforest_boost(X_train, X_test, y_train, y_test, n_est, rate)
-    elif estimator == 'rdforest_bag':
-        return rdforest_bag(X_train, X_test, y_train, y_test, n_est)
+    elif estimator == 'svm_subset':
+        return SVM_subset(X_train, X_test, y_train, y_test)
     elif estimator =='xgboost':
         return xgboost(X_train, X_test, y_train, y_test)
 

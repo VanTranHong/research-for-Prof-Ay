@@ -3,6 +3,7 @@ import numpy as np
 import pandas as pd
 import scoring as score
 import normal_run as nr
+import normal_run_parallel_ranked as parallel
 
 #######    main    ####
 data = pd.read_csv('info.csv',skipinitialspace=True, header = 0)
@@ -35,7 +36,8 @@ data1 = data1.dropna()
 
 ##################### RUNNING WITHOUT BOOSTING AND BAGGING for all ranking feature selections and CFS###############
 
-score.score(nr.normal_run(data1,n_seed=1,splits=2,estimators=['rdforest']),1,2)
+#score.score(nr.normal_run(data1,n_seed=1,splits=2,estimators=['rdforest']),1,2)
+score.score(parallel.normal_run(data1, n_seed=2, splits=5, methods=['infogain_10'], estimators=['rdforest']))
     
 
 

@@ -4,11 +4,20 @@ import pandas as pd
 import featureselection as fselect
 from sklearn.model_selection import StratifiedKFold
 import classifiers as e
+import os
 
-def normal_run(data, n_seed=5, splits=10, methods=['infogain_10'], estimators=['rdforest']):
+data_path = str(os.getcwd())+'/data/'
+results_path = str(os.getcwd())+'/results/'
+
+def normal_run(data, n_seed=2, splits=5, methods=['infogain_10'], estimators=['rdforest']):
     X = np.array(data.drop('HPYLORI',axis=1))
     y = np.array(data.HPYLORI)
     
+    if not os.path.exists('data'):
+        os.makedirs('data')
+    if not os.path.exists('results'):
+        os.makedirs('results')
+
     features = np.zeros(X.shape[1])
     outer_names = create_empty_dic(estimators, methods)
 
@@ -34,34 +43,19 @@ def normal_run(data, n_seed=5, splits=10, methods=['infogain_10'], estimators=['
                 
                 for estimator in estimators:
                     
-                    if len(estimator.split('_')) == 1:
-                        result = e.classify(estimator, X_train, X_test, y_train, y_test)
-                        filename = estimator+s+'_'+str(split_num)+'_'+str(seed)
-                        names[estimator][s].append(filename)
-                        result.to_csv(filename)
-                    elif estimator.split('_')[1]=='boost':
-                        n_ests = [25,50]
-                        rates = np.linspace(0.1,0.5,2)
-                        for n_est in n_ests:
-                            for rate in rates:
-                                result = e.classify(estimator, X_train, X_test, y_train, y_test, n_est, rate)
-                                filename = estimator+s+'_'+str(split_num)+'_'+str(seed)+'_'+str(n_est)+'_'+str(rate)+'.csv'
-                                names[estimator][s].append(filename)
-                                result.to_csv(filename)
-                    elif estimator.split('_')[1]=='bag':
-                        n_ests = [25,50]
-                        for n_est in n_ests:
-                            result = e.classify(estimator, X_train, X_test, y_train, y_test, n_est)
-                            filename = estimator+s+'_'+str(split_num)+'_'+str(seed)+'_'+str(n_est)+'.csv'
-                            names[estimator][s].append(filename)
-                            result.to_csv(filename)
+                    result = e.classify(estimator, X_train, X_test, y_train, y_test)
+                    filename = data_path+estimator+s+'_'+str(split_num)+'_'+str(seed)
+                    names[estimator][s].append(filename)
+                    result.to_csv(filename+'.csv')
+
         
         create_interim_csv(names, outer_names, seed, splits)
+        delete_interim_csv(names)
         
     file_list = create_final_csv(outer_names, n_seed)
     
     final_features = pd.DataFrame([features],columns=data.drop('HPYLORI',axis=1).columns)
-    final_features.to_csv('final_features.csv')
+    final_features.to_csv(results_path+'final_features_ranking_based.csv')
 
     return file_list
 
@@ -71,14 +65,12 @@ def normal_run(data, n_seed=5, splits=10, methods=['infogain_10'], estimators=['
 def subset_run(data, n_seed=5, splits=10, methods=['sfs'], estimators=['rdforest']):
     X = np.array(data.drop('HPYLORI',axis=1))
     y = np.array(data.HPYLORI)
+
+    if not os.path.exists('data'):
+        os.makedirs('data')
+    if not os.path.exists('results'):
+        os.makedirs('results')
     
-    final_features = {}
-    for estimator in estimators:
-        final_features[estimator] = {}
-        for method in methods:
-            final_features[estimator][method] = np.zeros(X.shape[1])
-
-
     outer_names = create_empty_dic(estimators, methods)
 
     for seed in range(n_seed):
@@ -94,43 +86,16 @@ def subset_run(data, n_seed=5, splits=10, methods=['sfs'], estimators=['rdforest
 
             for estimator in estimators:
                 for s in methods:
-                    selector = s.split('_')[0]
-                    n_features = int(s.split('_')[1])
-                    selection = fselect.run_subset_selection(selector, X_train, y_train, n_features, estimator)
-                    for i in selection:
-                        final_features[estimator][method][i] += 1
-
-                    X_train, X_test = X_train[:,selection], X_test[:,selection]
-
-                    if len(estimator.split('_')) == 1:
-                        result = e.classify(estimator, X_train, X_test, y_train, y_test)
-                        filename = estimator+s+'_'+str(split_num)+'_'+str(seed)
-                        names[estimator][s].append(filename)
-                        result.to_csv(filename+'.csv')
-                    elif estimator.split('_')[1]=='boost':
-                        n_ests = [25,50]
-                        rates = np.linspace(0.1,0.5,2)
-                        for n_est in n_ests:
-                            for rate in rates:
-                                result = e.classify(estimator, X_train, X_test, y_train, y_test, n_est, rate)
-                                filename = estimator+s+'_'+str(split_num)+'_'+str(seed)+'_'+str(n_est)+'_'+str(rate)
-                                names[estimator][s].append(filename)
-                                result.to_csv(filename+'.csv')
-                    elif estimator.split('_')[1]=='bag':
-                        n_ests = [25,50]
-                        for n_est in n_ests:
-                            result = e.classify(estimator, X_train, X_test, y_train, y_test, n_est)
-                            filename = estimator+s+'_'+str(split_num)+'_'+str(seed)+'_'+str(n_est)
-                            names[estimator][s].append(filename)
-                            result.to_csv(filename+'.csv')
+                    result = e.classify(estimator, X_train, X_test, y_train, y_test)
+                    filename = data_path+estimator+'_'+s+'_'+str(split_num)+'_'+str(seed)
+                    names[estimator][s].append(filename)
+                    result.to_csv(filename+'.csv')
 
         create_interim_csv(names, outer_names, seed, splits)
-        
+        delete_interim_csv(names)
+
     file_list = create_final_csv(outer_names, n_seed)
     
-    final_features = pd.DataFrame([final_features])
-    final_features.to_csv('final_features.csv')
-
     return file_list
 
 
@@ -159,12 +124,19 @@ def create_interim_csv(inner_dict, outer_dict, seed, n_splits):
                     temp = pd.read_csv(str(file)+'.csv', index_col=0)
                     df = pd.concat([df, temp.iloc[:,-1]],axis=1)
                 count += 1
-            filename = estimator+method+'_'+str(seed)+'_precombined'
+            filename = data_path+estimator+method+'_'+str(seed)+'_precombined'
             df.to_csv(filename+'.csv')
             outer_dict[estimator][method].append(filename)
             cmat = np.array(df.iloc[:,-n_splits:])
             with open(filename+'.npy', 'wb') as f:
                 np.save(f, cmat)
+
+def delete_interim_csv(inner_dict):
+    for estimator in inner_dict:
+        for method in inner_dict[estimator]:
+            for file in inner_dict[estimator][method]:
+                if os.path.exists(str(file)+'.csv'):
+                    os.remove(str(file)+'.csv')
 
 def create_final_csv(outer_dict, n_seed):
     final_names = []
@@ -184,7 +156,7 @@ def create_final_csv(outer_dict, n_seed):
                     array = np.sum(array,axis=0)
                     collapsed_array.append([array])
                 final_df = pd.concat([final_df,pd.DataFrame(collapsed_array, columns=['Confusion Matrix'])], axis=1)
-            final_filename = estimator+method+'_final'
+            final_filename = results_path+estimator+method+'_final'
             final_names.append(final_filename)
             final_df.to_csv(final_filename+'.csv')
             cmat = np.array(final_df.iloc[:,-n_seed:])
