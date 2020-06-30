@@ -88,6 +88,29 @@ def normal_run(data, n_seed=5, splits=10, methods=['infogain_10'], estimators=['
     file_list = create_final_csv(outer_dict, n_seed)
     return file_list
 
+def subset_run(data, n_seed=5, splits=10, methods=['sfs'], estimators=['rdforest']):
+    if not os.path.exists('data_parallel'):
+        os.makedirs('data_parallel')
+    if not os.path.exists('results_parallel'):
+        os.makedirs('results_parallel')
+    
+    vfunc = np.vectorize(stringconverter)
+
+    runs = runSKFold(n_seed,splits,data)
+    Parallel(n_jobs=-1)(delayed(execute_subset_run)(i,runs[i], estimators, methods) for  i  in range(len(runs)))
+    outer_dict = combinefile(methods,estimators,splits,n_seed,len(runs))
+    file_list = create_final_csv(outer_dict, n_seed)
+    return file_list
+
+def execute_subset_run(index, run,estimators, methods):     
+    X_train, X_test = run[0], run[1]
+    y_train, y_test = run[2], run[3]
+    for estimator in estimators:
+        for method in methods:
+            result = e.classify(estimator, X_train, X_test, y_train, y_test)
+            filename = data_path+estimator+method+'_'+str(index)
+            result.to_csv(filename+'.csv')
+
 def create_empty_dic(estimators, methods):
     final_dict = {}
     for estimator in estimators:

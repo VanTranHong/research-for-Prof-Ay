@@ -28,6 +28,26 @@ def KNN(X_train,X_test,y_train,y_test):
     
     return df
 
+def KNN_subset(X_train,X_test,y_train,y_test):
+    neighbors = [1,3,5,7,9]
+    df = pd.DataFrame(columns=['Neighbors','Features','Confusion Matrix'])
+    rows = []
+
+    for n in neighbors:
+        knn = KNeighborsClassifier(n_neighbors=n,n_jobs=-1)
+        selection = fselect.sfs(X_train, y_train, knn)
+        X_train_knn, X_test_knn = X_train[:,selection], X_test[:,selection]
+        knn.fit(X_train_knn,y_train)
+        predicted_labels = knn.predict(X_test_knn)
+        tn, fp, fn, tp = confusion_matrix(y_test, predicted_labels, labels=[0,1]).ravel()
+        convert_matrix = [tn,fp,fn,tp]
+        rows.append([n, selection, convert_matrix])
+    
+    for i in range(len(rows)):
+        df = df.append({'Neighbors':rows[i][0],'Features':rows[i][1],'Confusion Matrix':rows[i][2]}, ignore_index=True)
+    
+    return df
+
 def SVM(X_train,X_test,y_train,y_test):
 
     df = pd.DataFrame(columns=['Kernel','C','Gamma','Degree','Confusion Matrix'])
@@ -137,6 +157,31 @@ def rdforest(X_train,X_test,y_train,y_test):
 
     return df
 
+def rdforest_subset(X_train,X_test,y_train,y_test):
+    df = pd.DataFrame(columns=['N_Estimators','Max_Depth','Features','Confusion Matrix'])
+    rows = []
+    
+    estimators = [100, 200,300]#, 400, 500]
+    max_depths = [10,30]#50,70]
+
+    for estimator in estimators:
+        for max_d in max_depths:
+            rdf = RandomForestClassifier(n_estimators=estimator, max_depth=max_d,  random_state=0, n_jobs=-1)
+            selection = fselect.sfs(X_train, y_train, rdf)
+            X_train_rdf, X_test_rdf = X_train[:,selection], X_test[:,selection]
+            rdf.fit(X_train_rdf, y_train)
+            predicted_labels = rdf.predict(X_test_rdf)
+            tn, fp, fn, tp = confusion_matrix(y_test, predicted_labels, labels=[0,1]).ravel()
+            convert_matrix = [tn,fp,fn,tp]
+            rows.append([estimator, max_d, selection, convert_matrix])
+            print('One Run Complete')
+    
+    for i in range(len(rows)):
+        df = df.append({'N_Estimators':rows[i][0],'Max_Depth':rows[i][1],
+        'Features':rows[i][2],'Confusion Matrix':rows[i][3]}, ignore_index=True)
+
+    return df
+
 def xgboost(X_train,X_test,y_train,y_test):
     df = pd.DataFrame(columns=['Max_depth','N_estimators','ColSample','Subsample',
     'Min_Child_Weight','Scale_Pos_Weight','Confusion Matrix'])
@@ -197,6 +242,33 @@ def naive_bayes(X_train,X_test,y_train,y_test):
 
     return df
 
+def naive_bayes_subset(X_train,X_test,y_train,y_test):
+    df = pd.DataFrame(columns=['Gauss', 'Confusion Matrix'])
+    rows = []
+
+    gnb = GaussianNB()
+    gnb_selection = fselect.sfs(X_train, y_train, gnb)
+    X_train_gnb, X_test_gnb = X_train[:,gnb_selection], X_test[:,gnb_selection]
+    gnb.fit(X_train_gnb, y_train)
+    predicted_labels = gnb.predict(X_test_gnb)
+    tn_g, fp_g, fn_g, tp_g = confusion_matrix(y_test, predicted_labels, labels=[0,1]).ravel()
+    convert_matrix_g = [tn_g,fp_g,fn_g,tp_g]
+
+    df = df.append({'Gauss':1, 'Features':gnb_selection,'Confusion Matrix':convert_matrix_g}, ignore_index=True)
+
+    bnb = BernoulliNB()
+    bnb_selection = fselect.sfs(X_train, y_train, gnb)
+    X_train_bnb, X_test_bnb = X_train[:,bnb_selection], X_test[:,bnb_selection]
+    bnb.fit(X_train, y_train)
+    predicted_labels = bnb.predict(X_test)
+    tn, fp, fn, tp = confusion_matrix(y_test, predicted_labels, labels=[0,1]).ravel()
+    convert_matrix_b = [tn,fp,fn,tp]
+
+    df = df.append({'Gauss':0,'Features':bnb_selection,'Confusion Matrix':convert_matrix_b}, ignore_index=True)
+        
+
+    return df
+
 def classify(estimator, X_train, X_test, y_train, y_test, n_est=None, rate=None):
     if estimator == 'svm':
         return SVM(X_train, X_test, y_train, y_test)
@@ -208,6 +280,12 @@ def classify(estimator, X_train, X_test, y_train, y_test, n_est=None, rate=None)
         return KNN(X_train, X_test, y_train, y_test)
     elif estimator == 'svm_subset':
         return SVM_subset(X_train, X_test, y_train, y_test)
+    elif estimator == 'rdforest_subset':
+        return rdforest_subset(X_train, X_test, y_train, y_test)
+    elif estimator == 'knn_subset':
+        return KNN_subset(X_train, X_test, y_train, y_test)
+    elif estimator == 'naive_bayes_subset':
+        return naive_bayes_subset(X_train, X_test, y_train, y_test)
     elif estimator =='xgboost':
         return xgboost(X_train, X_test, y_train, y_test)
 
