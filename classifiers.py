@@ -10,6 +10,46 @@ from sklearn.naive_bayes import GaussianNB, BernoulliNB
 from sklearn.ensemble import AdaBoostClassifier
 from sklearn.ensemble import BaggingClassifier
 
+def boost(X_train,X_test,y_train,y_test, estimator):
+    estimators = [50,100,150]
+    rates = [0.5,0.75,1]
+    df = pd.DataFrame(columns=['Estimators','Learning Rate'])
+    rows = []
+
+    for n_est in estimators:
+        for rate in rates:
+            ada = AdaBoostClassifier(estimator, n_estimators=n_est, learning_rate=rate, random_state=0)
+            ada.fit(X_train,y_train)
+            predicted_labels = ada.predict(X_test)
+            tn, fp, fn, tp = confusion_matrix(y_test, predicted_labels, labels=[0,1]).ravel()
+            convert_matrix = [tn,fp,fn,tp]
+            rows.append([n_est, rate, convert_matrix])    
+
+    for i in range(len(rows)):
+        df = df.append({'Estimators':rows[i][0],'Learning Rate':rows[i][1],'Confusion Matrix':rows[i][2]}, ignore_index=True)
+    
+    return df
+
+def bag(X_train,X_test,y_train,y_test, estimator):
+    estimators = [50,100,150]
+    samples = [0.5,0.75,1]
+    df = pd.DataFrame(columns=['Estimators','Samples'])
+    rows = []
+
+    for n_est in estimators:
+        for sample in samples:
+            bag = BaggingClassifier(estimator, n_estimators=n_est, max_samples=sample, random_state=0)
+            bag.fit(X_train,y_train)
+            predicted_labels = bag.predict(X_test)
+            tn, fp, fn, tp = confusion_matrix(y_test, predicted_labels, labels=[0,1]).ravel()
+            convert_matrix = [tn,fp,fn,tp]
+            rows.append([n_est, sample, convert_matrix])    
+
+    for i in range(len(rows)):
+        df = df.append({'Estimators':rows[i][0],'Samples':rows[i][1],'Confusion Matrix':rows[i][2]}, ignore_index=True)
+    
+    return df
+
 def KNN(X_train,X_test,y_train,y_test):
     neighbors = [1,3,5,7,9]
     df = pd.DataFrame(columns=['Neighbors','Confusion Matrix'])
@@ -270,23 +310,29 @@ def naive_bayes_subset(X_train,X_test,y_train,y_test):
     return df
 
 def classify(estimator, X_train, X_test, y_train, y_test, n_est=None, rate=None):
-    if estimator == 'svm':
-        return SVM(X_train, X_test, y_train, y_test)
-    elif estimator == 'naive_bayes':
-        return naive_bayes(X_train, X_test, y_train, y_test)
-    elif estimator == 'rdforest':
-        return rdforest(X_train, X_test, y_train, y_test)
-    elif estimator == 'knn':
-        return KNN(X_train, X_test, y_train, y_test)
-    elif estimator == 'svm_subset':
-        return SVM_subset(X_train, X_test, y_train, y_test)
-    elif estimator == 'rdforest_subset':
-        return rdforest_subset(X_train, X_test, y_train, y_test)
-    elif estimator == 'knn_subset':
-        return KNN_subset(X_train, X_test, y_train, y_test)
-    elif estimator == 'naive_bayes_subset':
-        return naive_bayes_subset(X_train, X_test, y_train, y_test)
-    elif estimator =='xgboost':
-        return xgboost(X_train, X_test, y_train, y_test)
+    if type(estimator)==tuple:
+        if estimator[1] == 'boost':
+            return boost(X_train, X_test, y_train, y_test, estimator[2])
+        else:
+            return bag(X_train, X_test, y_train, y_test, estimator[2])
+    else:
+        if estimator == 'svm':
+            return SVM(X_train, X_test, y_train, y_test)
+        elif estimator == 'naive_bayes':
+            return naive_bayes(X_train, X_test, y_train, y_test)
+        elif estimator == 'rdforest':
+            return rdforest(X_train, X_test, y_train, y_test)
+        elif estimator == 'knn':
+            return KNN(X_train, X_test, y_train, y_test)
+        elif estimator == 'svm_subset':
+            return SVM_subset(X_train, X_test, y_train, y_test)
+        elif estimator == 'rdforest_subset':
+            return rdforest_subset(X_train, X_test, y_train, y_test)
+        elif estimator == 'knn_subset':
+            return KNN_subset(X_train, X_test, y_train, y_test)
+        elif estimator == 'naive_bayes_subset':
+            return naive_bayes_subset(X_train, X_test, y_train, y_test)
+        elif estimator =='xgboost':
+            return xgboost(X_train, X_test, y_train, y_test)
 
 #def stats & univariate stats
