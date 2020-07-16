@@ -5,12 +5,20 @@ def accuracy(tp, tn, total):
     return (tp+tn)/total
 
 def precision(tp, fp):
+    if tp+fp==0:
+        return 0
+
     return (tp/(tp+fp))
 
 def recall(tp, fn):
+    if tp+fn ==0:
+        return 0
+
     return (tp/(tp+fn))
 
 def f1(x, y):
+    if x+y ==0:
+        return 0
     return 2*((x*y)/(x+y))
 
 def score(files, n_seed, n_folds):
@@ -44,15 +52,15 @@ def score(files, n_seed, n_folds):
         averages = pd.DataFrame(average_array, columns=['Average Accuracy','Average Precision','Average Recall','Average F1'])
         final_df = pd.concat([df.iloc[:,range(df.shape[1]-n_folds)], averages],axis=1)
         final_df.to_csv(filename+'score.csv',index=True)
-            
-        
-        
-        
-       
-        
-        
-        
-    
-    
-    
+
+
+
+
+
+
+
+
+
+
+
     

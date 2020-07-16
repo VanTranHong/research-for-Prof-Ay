@@ -1,7 +1,8 @@
-import pandas as pd 
+import pandas as pd
 import numpy as np
 from sklearn.experimental import enable_iterative_imputer
 from sklearn.impute import IterativeImputer
+from sklearn.preprocessing import StandardScaler
 
 def remove_invalid_column(data):
     """Function that removes columns that aren't suitable for machine learning.
@@ -14,11 +15,12 @@ def remove_invalid_column(data):
     Returns:
         DataFrame: Preprocessed DataFrame.
     """
-    data = data[data.columns[data.isnull().mean()<0.05]]
-    data = data.select_dtypes(exclude=['object'])
-    data = data[data['HPYLORI'].notna()]
-    data = data.drop('Unnamed: 0', axis=1)
-    return data
+    data1 = data[data.columns[data.isnull().mean()<0.05]]
+    data1 = data1.select_dtypes(exclude=['object'])
+    data1 = data1[data1['H PYLORI'].notna()]
+    data1 = data1.drop('Unnamed: 0', axis = 1)
+
+    return data1
 
 def recategorize(data):
     """Recategorizes the data according to the standards in the SPSS file.
@@ -29,12 +31,13 @@ def recategorize(data):
     Returns:
         DataFrame: A DataFrame with replaced values.
     """
+
     data["ADD"].replace({2: 0}, inplace=True)
     data["AnyPars3"].replace({2: 0, 9: 0}, inplace=True)
     data["CookArea"]=data["CookArea"]-1
-    data["GCOW"]=data["GCOW"]-1 
+    data["GCOW"]=data["GCOW"]-1
     data["DEWORM"].replace({0: 'a', 1: 0}, inplace=True)
-    data["DEWORM"].replace({'a': 1}, inplace=True) 
+    data["DEWORM"].replace({'a': 1}, inplace=True)
     data["GCAT"].replace({1: 0, 2: 1, 3: 2}, inplace=True)
     data["GDOG"].replace({1: 0, 2: 1, 3: 2}, inplace=True)
     data["GELEC"].replace({3: 0, 2: 'a', 1: 2}, inplace=True)
@@ -49,7 +52,7 @@ def recategorize(data):
     data["WaterSource"].replace({1: 0, 2: 1, 3: 2}, inplace=True)
     return data
 
-def getnominal(data):
+def getnominal(data,nominal):
     """Finds the features that contain nominal values.
 
     Args:
@@ -58,12 +61,13 @@ def getnominal(data):
     Returns:
         List: A list that contains the nominal features.
     """
-    nominal = []
-    for col in data.columns:
-        distinct = np.sort(data[col].dropna().unique())
-        if len(distinct) > 2:
-            nominal.append(col)    
-    return nominal
+    returnarr = []
+    for col in nominal:
+        if col in data.columns:
+            distinct = np.sort(data[col].dropna().unique())
+            if len(distinct) > 2:
+                returnarr.append(col)
+    return returnarr
 
 def create_dummies (data):
     """Creates dummy variables.
@@ -74,9 +78,15 @@ def create_dummies (data):
     Returns:
         DataFrame: DataFrame containing the dataset with dummy variables.
     """
-    dummy = pd.get_dummies(data, columns = data.columns, drop_first= True) 
+    dummy = pd.get_dummies(data, columns = data.columns, drop_first= True)
     return dummy
 
+def normalize_data(data, continuous):
+    returnarr =[]
+    for col in continuous:
+        if col in data.columns:
+            returnarr.append(col)
+    return returnarr
 def impute(data):
     """Multivariate imputer that estimates each feature from all the others
 
@@ -91,8 +101,10 @@ def impute(data):
         imputer = IterativeImputer(sample_posterior=True, random_state=i)
         imputed_data.append(imputer.fit_transform(data))
     returned_data = np.round(np.mean(imputed_data,axis = 0))
-    
+
     return returned_data
+
+
 
 def modify_data(data, numerical, nominal):
     """Runs all the preprocessing functions on the dataset.
@@ -105,14 +117,24 @@ def modify_data(data, numerical, nominal):
     Returns:
         DataFrame: DataFrame with all the preprocessing done.
     """
-    data = remove_invalid_column(data)
-    data = recategorize(data)
-    columns = data.columns
-    data.columns = columns   
-    nominal = getnominal(data)  
-  
-    nominal_data = create_dummies (data[nominal])
-    data = data.drop(nominal, axis = 1)
-    data = pd.concat([data,nominal_data], axis =1)
-   
-    return data
+    data1 = remove_invalid_column(data)
+
+    data2 = recategorize(data1)
+
+    nominal = getnominal(data2,nominal)
+
+
+    nominal_data = create_dummies (data2[nominal])
+    data3 = data2.drop(nominal, axis = 1)
+    data4 = pd.concat([data3,nominal_data], axis =1)
+    normalize = normalize_data(data4, numerical)
+
+    for col in normalize:
+        mean = np.mean(data4[col])
+        std = np.std(data4[col])
+        normed = (data4[col]-mean)/std
+        data4[col] = normed
+
+
+
+    return data4
