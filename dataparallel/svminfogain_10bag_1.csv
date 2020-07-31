@@ -1,4 +1,0 @@
-,Kernel,C,Gamma,Degree,Estimators,Confusion Matrix
-0,linear,0.1,,,50,"[241, 64, 58, 114]"
-1,rbf,0.1,1,,50,"[283, 22, 124, 48]"
-2,poly,0.1,1,2,50,"[237, 68, 46, 126]"

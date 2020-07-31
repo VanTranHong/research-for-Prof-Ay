@@ -1,2 +1,0 @@
-,N_Estimators,Max_Depth,Estimators,Learning Rate,Confusion Matrix,Average Accuracy,Average Precision,Average Recall,Average F1
-0,300,5,50,0.5,"[218, 88, 47, 124]",0.720125786163522,0.6032608695652174,0.6472303206997084,0.6244725738396625

@@ -1,3 +1,0 @@
-,Gauss,Confusion Matrix,Confusion Matrix.1,Confusion Matrix.2,Confusion Matrix.3,Confusion Matrix.4,Confusion Matrix.5,Confusion Matrix,Confusion Matrix,Confusion Matrix,Confusion Matrix,Confusion Matrix
-0,1,"[17, 45, 2, 32]","[23, 38, 4, 31]","[19, 42, 5, 30]","[21, 40, 3, 32]","[15, 46, 1, 33]","[23, 38, 2, 32]",[191 420  35 308],[189 422  33 310],[186 425  33 310],[190 421  32 311],[172 439  34 309]
-1,0,"[46, 16, 9, 25]","[42, 19, 9, 26]","[42, 19, 8, 27]","[50, 11, 6, 29]","[43, 18, 6, 28]","[50, 11, 9, 25]",[464 147  87 256],[460 151  87 256],[459 152  88 255],[458 153  85 258],[459 152  87 256]

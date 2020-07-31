@@ -1,2 +1,0 @@
-base line accuracy is 0.640461215932914
-base line f1 value is 0.5289128758673862

@@ -1,66 +1,97 @@
-import entropy_estimators as ee
 
 
-def information_gain(f1, f2):
-    """
-    This function calculates the information gain, where ig(f1,f2) = H(f1) - H(f1|f2)
+# shiralkarprashant
+# /
+# FCBF
+#  Watch 
+# 3
+#  Star 31
+#  Fork 23
+# Code
+# Issues
+# Pull requests
+# 1
+# Actions
+# Projects
+# Security
+# Insights
+#  master 
+# FCBF/src/utilities.py  / Jump to 
+# Go to file
 
-    Input
-    -----
-    f1: {numpy array}, shape (n_samples,)
-    f2: {numpy array}, shape (n_samples,)
+# @shiralkarprashant
+# shiralkarprashant First commit
+# Latest commit 05417cb on Feb 11, 2015
+#  History
+#  1 contributor
+# 60 lines (47 sloc)  1.53 KB
+# RawBlame
+    
+#!/usr/bin/env python
+# encoding: utf-8
+"""
+utilities.py
+Created by Prashant Shiralkar on 2015-02-06.
+Utility methods to compute information-theoretic concepts such as 
+entropy, information gain, symmetrical uncertainty.
+"""
 
-    Output
-    ------
-    ig: {float}
-    """
+import sys
+import os
+import random 
+import numpy as np
+import scipy as sp
 
-    ig = ee.entropyd(f1) - conditional_entropy(f1, f2)
-    return ig
+def entropy(vec, base=2):
+	" Returns the empirical entropy H(X) in the input vector."
+	_, vec = np.unique(vec, return_counts=True)
+	prob_vec = np.array(vec/float(sum(vec)))
+	if base == 2:
+		logfn = np.log2
+	elif base == 10:
+		logfn = np.log10
+	else:
+		logfn = np.log
+	return prob_vec.dot(-logfn(prob_vec))
 
+def conditional_entropy(x, y):
+	"Returns H(X|Y)."
+	uy, uyc = np.unique(y, return_counts=True)
+	prob_uyc = uyc/float(sum(uyc))
+	cond_entropy_x = np.array([entropy(x[y == v]) for v in uy])
+	return prob_uyc.dot(cond_entropy_x)
+	
+def mutual_information(x, y):
+	" Returns the information gain/mutual information [H(X)-H(X|Y)] between two random vars x & y."
+	return entropy(x) - conditional_entropy(x, y)
 
-def conditional_entropy(f1, f2):
-    """
-    This function calculates the conditional entropy, where ce = H(f1) - I(f1;f2)
-
-    Input
-    -----
-    f1: {numpy array}, shape (n_samples,)
-    f2: {numpy array}, shape (n_samples,)
-
-    Output
-    ------
-    ce: {float}
-        ce is conditional entropy of f1 and f2
-    """
-
-    ce = ee.entropyd(f1) - ee.midd(f1, f2)
-    return ce
-
-
-def su_calculation(f1, f2):
-    """
-    This function calculates the symmetrical uncertainty, where su(f1,f2) = 2*IG(f1,f2)/(H(f1)+H(f2))
-
-    Input
-    -----
-    f1: {numpy array}, shape (n_samples,)
-    f2: {numpy array}, shape (n_samples,)
-
-    Output
-    ------
-    su: {float}
-        su is the symmetrical uncertainty of f1 and f2
-
-    """
-
-    # calculate information gain of f1 and f2, t1 = ig(f1,f2)
-    t1 = information_gain(f1, f2)
-    # calculate entropy of f1, t2 = H(f1)
-    t2 = ee.entropyd(f1)
-    # calculate entropy of f2, t3 = H(f2)
-    t3 = ee.entropyd(f2)
-    # su(f1,f2) = 2*t1/(t2+t3)
-    su = 2.0*t1/(t2+t3)
-
-    return su
+def su_calculation(x, y):
+	" Returns 'symmetrical uncertainty' - a symmetric mutual information measure."
+	return 2.0*mutual_information(x, y)/(entropy(x) + entropy(y))
+	
+# if __name__ == '__main__':
+# 	vec1 = np.linspace(1,20,20)
+# 	print "Vec 1:", vec1
+# 	print "Entropy:", entropy(vec1)
+	
+# 	vec2 = np.tile([4,5,6,7], 5)
+# 	print "Vec 2:", vec2
+# 	print "Entropy:", entropy(vec2)
+	
+# 	mi = mutual_information(vec1, vec2)
+# 	print "Mutual information: {0}".format(mi)
+	
+# 	su = symmetrical_uncertainty(vec1, vec2)
+# 	print "Symmetrical uncertainty: {0}". format(su)
+# © 2020 GitHub, Inc.
+# Terms
+# Privacy
+# Security
+# Status
+# Help
+# Contact GitHub
+# Pricing
+# API
+# Training
+# Blog
+# About

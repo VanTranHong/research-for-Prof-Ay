@@ -1,134 +1,159 @@
 import numpy as np
-import matplotlib.pyplot as plt
-import math
-
-###########entering raw data
-
-
-ADD = np.array([0])
-AgeGroups_1_0  = np.array([1])
-AgeGroups_2_0 = np.array([0.3])
-AnyAllr = np.array([1])
-AnyPars3 = np.array([0])
-CookArea = np.array([1])
-DEWORM  = np.array([1])
-FamilyGrouped_1_0 = np.array([1])
-FamilyGrouped_2_0 = np.array([1])
-GCAT_1  = np.array([0])
-GCAT_2 = np.array([0.98])
-GCOW = np.array([0])
-GDOG_1_0  = np.array([0])
-GDOG_2_0 = np.array([0])
-GELEC_1_0  = np.array([0])
-GELEC_2_0  = np.array([0])
-GFLOOR6A_1_0 = np.array([0])
-GFLOOR6A_2_0 = np.array([0.9])
-GFLOOR6A_9_0 = np.array([0.04])
-GWASTE_1_0  = np.array([1])
-GWASTE_2_0  = np.array([0])
-GWASTE_3_0  = np.array([1])
-HCIGR6A = np.array([1])
-ToiletType_1_0 = np.array([1])
-ToiletType_2_0 = np.array([0])
-WaterSource_1_0 = np.array([0])
-WaterSource_2_0 = np.array([0])
+from sklearn.feature_selection import mutual_info_classif
+from ReliefF import ReliefF
+from mlxtend.feature_selection import SequentialFeatureSelector as SFS
+from sklearn.svm import LinearSVC, SVC
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.naive_bayes import GaussianNB
+import FCBF
+import su_calculation as su
+import MRMR as mr
 
 
+def infogain(X, y, n_features):
+    """Runs infogain feature selection on the data (X) and the target values (y) and finds
+    the index of the top n_features number of features.
+
+    Args:
+        X (Numpy Array): An array containing the dataset.
+        y (Numpy Array): An array consisting of the target values
+        n_features (int): An integer specifying how many features should be selected.
+
+    Returns:
+        List: Returns a list containing the indices of the features that have been selected.
+    """
+    score = mutual_info_classif(X, y,random_state=0)
+    index = list(np.argsort(list(score))[-1*n_features:])
+    index.sort()
+    return index
+
+def reliefF(X, y, n_features):
+    """Runs ReliefF algorithm on the data (X) and the target values (y) and finds 
+    the index of the top n_features number of features.
+
+    Args:
+        X (Numpy Array): An array containing the dataset.
+        y (Numpy Array): An array consisting of the target values.
+        n_features (int): An integer specifying how many features should be selected.
+
+    Returns:
+        List: Returns a list containing the indices of the features that have been selected.
+    """
+    fs = ReliefF(n_neighbors=100, n_features_to_keep=n_features)
+    fs.fit_transform(X, y)
+    index = fs.top_features[:n_features]
+    return index
+
+def fcbf(X, y):
+    selection = FCBF.fcbf(X, y)
+    index = list(selection[0])#[-1*n_features:]
+    index.sort()
+    return index
+
+def merit_calculation(X, y):
+    """
+    This function calculates the merit of X given class labels y, where
+    merits = (k * rcf)/sqrt(k+k*(k-1)*rff)
+    rcf = (1/k)*sum(su(fi,y)) for all fi in X
+    rff = (1/(k*(k-1)))*sum(su(fi,fj)) for all fi and fj in X
+    Input
+    ----------
+    X: {numpy array}, shape (n_samples, n_features)
+        input data
+    y: {numpy array}, shape (n_samples,)
+        input class labels
+    Output
+    ----------
+    merits: {float}
+        merit of a feature subset X
+    """
+
+    n_samples, n_features = X.shape
+    rff = 0
+    rcf = 0
+    for i in range(n_features):
+        fi = X[:, i]
+        rcf += su.su_calculation(fi, y)
+        for j in range(n_features):
+            if j > i:
+                fj = X[:, j]
+                rff += su.su_calculation(fi, fj)
+    rff *= 2
+    merits = rcf / np.sqrt(n_features + rff)
+    return merits
 
 
-######## calculate the average
-ADD_mean=np.mean(ADD)
-AgeGroups_1_0_mean=np.mean(AgeGroups_1_0)
-AgeGroups_2_0_mean=np.mean(AgeGroups_2_0)
-AnyAllr_mean =np.mean(AnyAllr)
-AnyPars3_mean=np.mean(AnyPars3)
-CookArea_mean=np.mean(CookArea)
-DEWORM_mean=np.mean(DEWORM)
-FamilyGrouped_1_0_mean=np.mean(FamilyGrouped_1_0)
-FamilyGrouped_2_0_mean=np.mean(FamilyGrouped_2_0)
-GCAT_1_mean=np.mean(GCAT_1)
-GCAT_2_mean=np.mean(GCAT_2)
-GCOW_mean =np.mean(GCOW)
-GDOG_1_0_mean=np.mean(GDOG_1_0)
-GDOG_2_0_mean=np.mean(GDOG_2_0)
-GELEC_1_0_mean=np.mean(GELEC_1_0)
-GELEC_2_0_mean=np.mean(GELEC_2_0)
-GFLOOR6A_1_0_mean=np.mean(GFLOOR6A_1_0)
-GFLOOR6A_2_0_mean=np.mean(GFLOOR6A_2_0)
-GFLOOR6A_9_0_mean=np.mean(GFLOOR6A_9_0)
-GWASTE_1_0_mean=np.mean(GWASTE_1_0)
-GWASTE_2_0_mean=np.mean(GWASTE_2_0)
-GWASTE_3_0_mean=np.mean(GWASTE_3_0)
-HCIGR6A_mean=np.mean(HCIGR6A)
-ToiletType_1_0_mean=np.mean(ToiletType_1_0)
-ToiletType_2_0_mean=np.mean(ToiletType_2_0)
-WaterSource_1_0_mean=np.mean(WaterSource_1_0)
-WaterSource_2_0_mean=np.mean(WaterSource_2_0)
+def cfs(X, y):
+   
+
+    n_samples, n_features = X.shape
+    F = []
+    # M stores the merit values
+    M = []
+    while True:
+        merit = -100000000000
+        idx = -1
+        for i in range(n_features):
+            if i not in F:
+                F.append(i)
+                # calculate the merit of current selected features
+                t = merit_calculation(X[:, F], y)
+                if t > merit:
+                    merit = t
+                    idx = i
+                F.pop()
+        F.append(idx)
+        M.append(merit)
+        if len(M) > 6:
+            if M[len(M)-1] <= M[len(M)-2]:
+                if M[len(M)-2] <= M[len(M)-3]:
+                    if M[len(M)-3] <= M[len(M)-4]:
+                        if M[len(M)-4] <= M[len(M)-5]:
+                            break
+    print(np.array(F))
+    return np.array(F)
+    
+
+def run_feature_selection(method,X,y,n_features):
+    """Runs the specific ranking based feature selection method.
+
+    Args:
+        method (String): A string that refers to the feature selection method to be used.
+        X (Numpy Array): An array containing the dataset.
+        y (Numpy Array): An array consisting of the target values.
+        n_features (int): An integer specifying how many features should be selected.
+
+    Returns:
+        List: Returns a list containing the indices of the features that have been selected.
+    """
+    if method == 'infogain':
+        return infogain(X,y,n_features)
+    elif method == 'reliefF':
+        return reliefF(X,y,n_features)
+    elif method == 'cfs':
+        return cfs(X, y)
+    elif method == 'mrmr':
+        f =  mr.mrmr(X,y)
+        print(f)
+        return f
+    elif method =='fcbf':
+        return fcbf(X,y)
+ 
 
 
+def sfs(X_train, y_train, estimator, metric): 
+    sfs1 = SFS(estimator, k_features=(1,X_train.shape[1]), forward=True, floating=False, scoring=metric, cv=0)
+    sfs1 = sfs1.fit(X_train, y_train)
+    return sfs1.k_feature_idx_
+
+# def su_calculation(f1, f2):
+#     both = 0
+#     thesum = 0
+#     for i in range(len(f1)):
+#         if f1[i] and f2[i]:
+#             both+=1
+#         thesum+=f1[i]
+#         thesum+=f2[i]
+#     return 2*both/thesum
 
 
-
-####### calculate the standard deviation
-
-ADD_std = np.std(ADD)
-AgeGroups_1_0_std=np.std(AgeGroups_1_0)
-AgeGroups_2_0_std=np.std(AgeGroups_2_0)
-AnyAllr_std=np.std(AnyAllr)
-AnyPars3_std=np.std(AnyPars3)
-CookArea_std=np.std(CookArea)
-DEWORM_std=np.std(DEWORM)
-FamilyGrouped_1_0_std=np.std(FamilyGrouped_1_0)
-FamilyGrouped_2_0_std=np.std(FamilyGrouped_2_0)
-GCAT_1_std=np.std(GCAT_1)
-GCAT_2_std=np.std(GCAT_2)
-GCOW_std=np.std(GCOW)
-GDOG_1_0_std=np.std(GDOG_1_0)
-GDOG_2_0_std=np.std(GDOG_2_0)
-GELEC_1_0_std=np.std(GELEC_1_0)
-GELEC_2_0_std=np.std(GELEC_2_0)
-GFLOOR6A_1_0_std=np.std(GFLOOR6A_1_0)
-GFLOOR6A_2_0_std=np.std(GFLOOR6A_2_0)
-GFLOOR6A_9_0_std=np.std(GFLOOR6A_9_0)
-GWASTE_1_0_std=np.std(GWASTE_1_0)
-GWASTE_2_0_std=np.std(GWASTE_2_0)
-GWASTE_3_0_std=np.std(GWASTE_3_0)
-HCIGR6A_std=np.std(HCIGR6A)
-ToiletType_1_0_std=np.std(ToiletType_1_0)
-ToiletType_2_0_std=np.std(ToiletType_2_0)
-WaterSource_1_0_std=np.std(WaterSource_1_0)
-WaterSource_2_0_std=np.std(WaterSource_2_0)
-
-
-
-
-######### create lists for the plot
-
-Features = ['Place of residence','Cook Area','Any smokers in home','Have cat kept outside','Sometimes use electricity','Never use electricity','Deworming status','Have cat live inside','Toilet type is pit','Any parasites found','Any allergic disease','Dispose waste in open field','Have dog live inside','Have cow','Family size >5','Dispose waste in pit','Age 6-10','Floor type not cement, wood, mud','Toilet is open field','Floor type is wood','Dispose waste by burning','Water source is well','Family size from 4-5','Age 11-15','Floor type is mud','Water source is river/rainwater','Have a dog kept outside']
-
-
-x_pos = np.arange(len(Features))
-CTEs = [ADD_mean,CookArea_mean,HCIGR6A_mean,GCAT_2_mean,GELEC_1_0_mean,GELEC_2_0_mean,DEWORM_mean,GCAT_1_mean,ToiletType_1_0_mean,AnyPars3_mean,AnyAllr_mean,GWASTE_2_0_mean,GDOG_1_0_mean,GCOW_mean,FamilyGrouped_2_0_mean,GWASTE_1_0_mean,AgeGroups_1_0_mean,GFLOOR6A_9_0_mean,ToiletType_2_0_mean,GFLOOR6A_1_0_mean,GWASTE_3_0_mean,WaterSource_1_0_mean,FamilyGrouped_1_0_mean,AgeGroups_2_0_mean,GFLOOR6A_2_0_mean,WaterSource_2_0_mean,GDOG_2_0_mean]
-error = [ADD_std,CookArea_std,HCIGR6A_std,GCAT_2_std,GELEC_1_0_std,GELEC_2_0_std,DEWORM_std,GCAT_1_std,ToiletType_1_0_std,AnyPars3_std,AnyAllr_std,GWASTE_2_0_std,GDOG_1_0_std,GCOW_std,FamilyGrouped_2_0_std,GWASTE_1_0_std,AgeGroups_1_0_std,GFLOOR6A_9_0_std,ToiletType_2_0_std,GFLOOR6A_1_0_std,GWASTE_3_0_std,WaterSource_1_0_std,FamilyGrouped_1_0_std,AgeGroups_2_0_std,GFLOOR6A_2_0_std,WaterSource_2_0_std,GDOG_2_0_std]
-
-#########build the plot
-fig, ax = plt.subplots()
-ax.bar(x_pos,CTEs,yerr = error,align = 'center',alpha = 0.5,color = 'grey',ecolor = 'black',error_kw=dict(lw=1, capsize=2, capthick=1),capsize=4)
-ax.set_ylabel('Probability', fontsize =15)
-ax.set_xticks(x_pos)
-ax.set_xticklabels(Features)
-ax.set_title('CFS Based',fontsize =30)
-ax.yaxis.grid(True)
-
-# Save the figure and show
-plt.xticks(rotation =90)
-plt.yticks(np.arange(0,1.5,step=0.5),fontsize =15)#
-plt.tight_layout()
-plt.savefig('CFS_based_plot_with_error_bars.png')
-plt.show()
-
-
-
-
-
-######## save the figure and show
