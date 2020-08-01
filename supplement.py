@@ -19,6 +19,8 @@ from sklearn.impute import IterativeImputer
 import statsmodels.api as sm
 import scoring as sr
 
+
+##### reading from csv file that the summary of confusion matrix, will calculate accuracy and F1 score for each matrix and write in 2 files one for accuracy and 1 for F1 score
 data = pd.read_csv('SUMMARY.csv',skipinitialspace=True, header = 0)
 data1 = data.iloc[:,[5,6,7,8,9]]
 numpy_arr = data1.to_numpy()

@@ -12,16 +12,53 @@ from sklearn.ensemble import BaggingClassifier
 from sklearn.linear_model import  SGDClassifier
 
 
+def boost_elasticnet(X_train,X_test,y_train,y_test):
+    
+  
+    # applying bagging to logistic regression with elasticnet
+    # Args:
+    #     X_train, X_test, y_train, y_test
+
+    # Returns:
+    #     DataFrame: Preprocessed DataFrame. where Alpha and L1 ratio are hyperparameters of elastic net, estimator is hyperparameter for bagging, confusion matrix is the confusion matrix for each combination of those hyperparameters
+    
+    
+    df = pd.DataFrame(columns=['Alpha','Estimators','Learning Rate','Confusion Matrix'])
+    rows = []
+    alphas= [0.0001, 0.001, 0.01]#,0.1,1]
+    estimators = [50,100,150]
+    rates = [0.5,0.75,1]
+    
+    
+
+    for al in alphas:
+        estimator = SGDClassifier(loss = 'log',alpha= al,penalty = 'l1',random_state=0)
+        for n_est in estimators:
+            for rate in rates:
+                ada = AdaBoostClassifier(estimator,n_estimators=n_est,algorithm='SAMME', learning_rate=rate, random_state=0) #
+                ada.fit(X_train,y_train)
+                predicted_labels = ada.predict(X_test)
+                tn, fp, fn, tp = confusion_matrix(y_test, predicted_labels, labels=[0,1]).ravel()
+                convert_matrix = [tn,fp,fn,tp]
+                rows.append([al,n_est, rate, convert_matrix])
+
+            
+            
+    for i in range(len(rows)):
+        df = df.append({'Alpha':rows[i][0],'Estimators':rows[i][1],'Learning Rate':rows[i][2],'Confusion Matrix':rows[i][3]}, ignore_index=True)
+
+    return df
+
 def boost_KNN(X_train,X_test,y_train,y_test):
       
-    '''
-    applying boosting to KNN classifier
-    Args:
-        X_train, X_test, y_train, y_test
+    # '''
+    # applying boosting to KNN classifier
+    # Args:
+    #     X_train, X_test, y_train, y_test
 
-    Returns:
-        DataFrame: Preprocessed DataFrame. where neighbors is hyperparameters of KNN, learning rate, estimator is hyperparameter for boosting, confusion matrix is the confusion matrix for each combination of those hyperparameters
-    '''
+    # Returns:
+    #     DataFrame: Preprocessed DataFrame. where neighbors is hyperparameters of KNN, learning rate, estimator is hyperparameter for boosting, confusion matrix is the confusion matrix for each combination of those hyperparameters
+    # '''
     
     
     
@@ -48,14 +85,14 @@ def boost_KNN(X_train,X_test,y_train,y_test):
     return df
 
 def boost_SVM(X_train,X_test,y_train,y_test):
-    '''
-    applying boosting to SVM classifier
-    Args:
-        X_train, X_test, y_train, y_test
+    # '''
+    # applying boosting to SVM classifier
+    # Args:
+    #     X_train, X_test, y_train, y_test
 
-    Returns:
-        DataFrame: Preprocessed DataFrame. where Kernal, C, gamma, degrees are hyperparameters of SVM, learning rate, estimator is hyperparameter for boosting, confusion matrix is the confusion matrix for each combination of those hyperparameters
-    '''
+    # Returns:
+    #     DataFrame: Preprocessed DataFrame. where Kernal, C, gamma, degrees are hyperparameters of SVM, learning rate, estimator is hyperparameter for boosting, confusion matrix is the confusion matrix for each combination of those hyperparameters
+    # '''
     
     
     
@@ -112,14 +149,14 @@ def boost_SVM(X_train,X_test,y_train,y_test):
 
 
 def boost_rdforest(X_train,X_test,y_train,y_test):
-        '''
-    applying boosting to random forest classifier
-    Args:
-        X_train, X_test, y_train, y_test
+    #     '''
+    # applying boosting to random forest classifier
+    # Args:
+    #     X_train, X_test, y_train, y_test
 
-    Returns:
-        DataFrame: Preprocessed DataFrame. where n_estimators and max_depths are hyperparameters of random forest, rates, estimators are hyperparameter for boosting, confusion matrix is the confusion matrix for each combination of those hyperparameters
-    '''
+    # Returns:
+    #     DataFrame: Preprocessed DataFrame. where n_estimators and max_depths are hyperparameters of random forest, rates, estimators are hyperparameter for boosting, confusion matrix is the confusion matrix for each combination of those hyperparameters
+    # '''
     
     
     estimators = [50,100,150]
@@ -150,14 +187,14 @@ def boost_rdforest(X_train,X_test,y_train,y_test):
 
 
 def boost_xgboost(X_train,X_test,y_train,y_test):
-    '''
-    applying boosting to XGBoost classifier
-    Args:
-        X_train, X_test, y_train, y_test
+    # '''
+    # applying boosting to XGBoost classifier
+    # Args:
+    #     X_train, X_test, y_train, y_test
 
-    Returns:
-        DataFrame: Preprocessed DataFrame. where max_depth and n_estimators are hyperparameters of XGBoost, rates, estimators are hyperparameter for boosting, confusion matrix is the confusion matrix for each combination of those hyperparameters
-    '''
+    # Returns:
+    #     DataFrame: Preprocessed DataFrame. where max_depth and n_estimators are hyperparameters of XGBoost, rates, estimators are hyperparameter for boosting, confusion matrix is the confusion matrix for each combination of those hyperparameters
+    # '''
     
     
     
@@ -189,14 +226,14 @@ def boost_xgboost(X_train,X_test,y_train,y_test):
 
 
 def boost_naive_bayes(X_train,X_test,y_train,y_test):
-        '''
-    applying boosting to KNN classifier
-    Args:
-        X_train, X_test, y_train, y_test
+    #     '''
+    # applying boosting to KNN classifier
+    # Args:
+    #     X_train, X_test, y_train, y_test
 
-    Returns:
-        DataFrame: Preprocessed DataFrame. where Gauss indicate if it is Gauss(1) or Bernoulli(0), learning rates, estimators are hyperparameter for boosting, confusion matrix is the confusion matrix for each combination of those hyperparameters
-    '''
+    # Returns:
+    #     DataFrame: Preprocessed DataFrame. where Gauss indicate if it is Gauss(1) or Bernoulli(0), learning rates, estimators are hyperparameter for boosting, confusion matrix is the confusion matrix for each combination of those hyperparameters
+    # '''
     
     
     
@@ -241,4 +278,7 @@ def classify_boost(estimator, X_train, X_test, y_train, y_test, n_est=None, rate
         return boost_KNN(X_train, X_test, y_train, y_test)
     elif estimator =='xgboost':
         return boost_xgboost(X_train, X_test, y_train, y_test)
+    elif estimator =='elasticnet':
+        return boost_elasticnet(X_train, X_test, y_train, y_test)
+    
 

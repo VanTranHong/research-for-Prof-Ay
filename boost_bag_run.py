@@ -27,21 +27,21 @@ results_path = str(os.getcwd())+'/resultsparallel/'
     
     
 def boostbag_run(n_seed, splits, methods,estimators, runs,name, n_features):
-    '''
-    running boost or bag
+    # '''
+    # running boost or bag
     
-    Args:
-        n_seed(int): number of times we run splits-fold cross validation
-        splits(int): number of folds in each cross validation
-        methods(list): feature selection methods, can only be ranking method or non SFS subsetbased methods
-        estimators(list): classifiers
-        runs(list): data for splits
-        name (string): boost or bag
-        n_features(int): number of features
+    # Args:
+    #     n_seed(int): number of times we run splits-fold cross validation
+    #     splits(int): number of folds in each cross validation
+    #     methods(list): feature selection methods, can only be ranking method or non SFS subsetbased methods
+    #     estimators(list): classifiers
+    #     runs(list): data for splits
+    #     name (string): boost or bag
+    #     n_features(int): number of features
 
-    Returns:
-        List(list): final csv files that can be scored
-    '''
+    # Returns:
+    #     List(list): final csv files that can be scored
+    # '''
     
     
     if not os.path.exists('dataparallel'):
@@ -68,20 +68,20 @@ def boostbag_run(n_seed, splits, methods,estimators, runs,name, n_features):
 
 
 def execute_a_boost_run(index, run,features,estimators, methods):
-    '''
-    Executing a boost run for different combinations of estimators and  methods
+    # '''
+    # Executing a boost run for different combinations of estimators and  methods
     
-    Args:
-    index(int): index of the run
-    run(list): of X_train, X_test, y_train, y_test
-    features(list): of features of that runs for different methods of feature selections
-    estimators(list): of classifiers
-    methods(list): of feature selections
+    # Args:
+    # index(int): index of the run
+    # run(list): of X_train, X_test, y_train, y_test
+    # features(list): of features of that runs for different methods of feature selections
+    # estimators(list): of classifiers
+    # methods(list): of feature selections
     
-    Returns:
+    # Returns:
     
     
-    '''
+    # '''
     
     for i in range(len(methods)):
         method = methods[i]
@@ -97,20 +97,20 @@ def execute_a_boost_run(index, run,features,estimators, methods):
             
             
 def execute_a_bag_run(index, run,features,estimators, methods):
-    '''
-    Executing a bag run for different combinations of estimators and  methods
+    # '''
+    # Executing a bag run for different combinations of estimators and  methods
     
-    Args:
-    index(int): index of the run
-    run(list): of X_train, X_test, y_train, y_test
-    features(list): of features of that runs for different methods of feature selections
-    estimators(list): of classifiers
-    methods(list): of feature selections
+    # Args:
+    # index(int): index of the run
+    # run(list): of X_train, X_test, y_train, y_test
+    # features(list): of features of that runs for different methods of feature selections
+    # estimators(list): of classifiers
+    # methods(list): of feature selections
     
-    Returns:
+    # Returns:
     
     
-    '''
+    # '''
     
     for i in range(len(methods)):
         method = methods[i]
@@ -125,14 +125,14 @@ def execute_a_bag_run(index, run,features,estimators, methods):
             result.to_csv(filename+'.csv')
             
 def create_empty_dic(estimators, methods):
-    '''creating an empty dictionary whose keys are estimators. values is also a dictionay whose value is feature selection method
-    Args:
-    estimators(list): of classifiers
-    methods(list): feature selection methods
-    Returns:
-    an empty dictionary
+    # '''creating an empty dictionary whose keys are estimators. values is also a dictionay whose value is feature selection method
+    # Args:
+    # estimators(list): of classifiers
+    # methods(list): feature selection methods
+    # Returns:
+    # an empty dictionary
     
-    '''
+    # '''
     
     
     final_dict = {}
@@ -142,20 +142,20 @@ def create_empty_dic(estimators, methods):
             final_dict[estimator][method] = []
     return final_dict
 def stringconverter(string_vector):
-    '''converting string to int'''
+    # '''converting string to int'''
 
     return np.fromstring(string_vector[1:-1], dtype=np.int, sep=',')
 def create_final_csv(outer_dict, n_seed):
     
-    '''
-    creating a final csv file by putting the confusion matrix of different cross validations of the same combination of feature selection and classifiers together
-    Args:
-    outer_dict: dictionary that contains the names of the files
-    n_need: number of cross validations
+    # '''
+    # creating a final csv file by putting the confusion matrix of different cross validations of the same combination of feature selection and classifiers together
+    # Args:
+    # outer_dict: dictionary that contains the names of the files
+    # n_need: number of cross validations
     
-    Returns: the names of the csv files that we create
+    # Returns: the names of the csv files that we create
     
-    '''
+    # '''
     
     
     final_names = []
@@ -188,21 +188,21 @@ def create_final_csv(outer_dict, n_seed):
 
     return final_names
 def combinefile(methods,estimators,splits, n_seed,num_runs, outer_dict):
-    ''' combining the results from all runs of the same seed each combination of estimator and feature selection methods into a bigger file and put that file into the dictionary
-    this will sum the matrix for each split of the same seed and write into a csv file
+    # ''' combining the results from all runs of the same seed each combination of estimator and feature selection methods into a bigger file and put that file into the dictionary
+    # this will sum the matrix for each split of the same seed and write into a csv file
     
-    Args:
+    # Args:
     
-    methods(list): of feature selection methods
-    estimators(list): of classifiers
-    splits(int): numnber of folds in each cross validaton
-    n_seed(int): number of cross validation
-    outer_dict: dictonary where we will put the names of files created into
+    # methods(list): of feature selection methods
+    # estimators(list): of classifiers
+    # splits(int): numnber of folds in each cross validaton
+    # n_seed(int): number of cross validation
+    # outer_dict: dictonary where we will put the names of files created into
     
-    Returns:
-    None
+    # Returns:
+    # None
     
-    '''
+    # '''
     
     for estimator in estimators:
         for method in methods:
@@ -221,21 +221,21 @@ def combinefile(methods,estimators,splits, n_seed,num_runs, outer_dict):
                 with open(filename+'.npy', 'wb') as f:
                     np.save(f, cmat)
 def execute_feature_selection(runs, methods, n_features,n_seed,splits):
-    '''
-    executing feature selection on the runs in parallel
-    Args:
-        n_seed(int): number of times we run splits-fold cross validation
-        splits(int): number of folds in each cross validation
-        methods(list): feature selection methods, can only be ranking method or non SFS subsetbased methods
-        runs(list): data for splits
+    # '''
+    # executing feature selection on the runs in parallel
+    # Args:
+    #     n_seed(int): number of times we run splits-fold cross validation
+    #     splits(int): number of folds in each cross validation
+    #     methods(list): feature selection methods, can only be ranking method or non SFS subsetbased methods
+    #     runs(list): data for splits
         
-        n_features(int): number of features
+    #     n_features(int): number of features
 
-    Returns:
-        List: of size number of runs (=n_seed * splits)
-        each item in the list is a list of the same size as methods, each item in that list is the list of features selected for that method
+    # Returns:
+    #     List: of size number of runs (=n_seed * splits)
+    #     each item in the list is a list of the same size as methods, each item in that list is the list of features selected for that method
     
-    '''
+    # '''
     
     
     result = Parallel(n_jobs=-1)(delayed(execute_feature_selection_a_run)(run, methods) for  run in runs)
@@ -243,17 +243,17 @@ def execute_feature_selection(runs, methods, n_features,n_seed,splits):
     return result
 
 def execute_feature_selection_a_run(run, methods):
-    '''
-    executing feature selections of a run for the methods
+    # '''
+    # executing feature selections of a run for the methods
     
-    Args:
-        run(list): of  X_train, X_test, y_train, y_test
-        methods (list): of feature selection methods
+    # Args:
+    #     run(list): of  X_train, X_test, y_train, y_test
+    #     methods (list): of feature selection methods
 
-    Returns:
-        List: A list of the same size as methods where each item is list of features selected for that method for that run
+    # Returns:
+    #     List: A list of the same size as methods where each item is list of features selected for that method for that run
     
-    '''
+    # '''
     
     
     X_train,  y_train = run[0], run[2]
@@ -266,20 +266,20 @@ def execute_feature_selection_a_run(run, methods):
 
 
 def produce_features(result, n_features,methods, n_seed, splits):
-    '''
-    producing features file for each seed run for each feature selection methods
+    # '''
+    # producing features file for each seed run for each feature selection methods
     
-    Args:
-    result(list): result form feature selection methods
-    n_features(int): the number of features in the dataset
-    methods(list): of feature selection methods
-    n_seed(int): number of splits-fold cross validation
-    splits(int):number of folds in each cross validation
+    # Args:
+    # result(list): result form feature selection methods
+    # n_features(int): the number of features in the dataset
+    # methods(list): of feature selection methods
+    # n_seed(int): number of splits-fold cross validation
+    # splits(int):number of folds in each cross validation
     
-    Returns: None
+    # Returns: None
     
     
-    '''
+    # '''
     
     
     
@@ -296,7 +296,7 @@ def produce_features(result, n_features,methods, n_seed, splits):
             df.to_csv(results_path+method+str(j)+'.csv')
             
 def delete_interim_csv(estimators,methods,runs_len):
-    '''deleting unimportant temporary csv files'''
+    # '''deleting unimportant temporary csv files'''
     
     for estimator in estimators:
         for method in methods:

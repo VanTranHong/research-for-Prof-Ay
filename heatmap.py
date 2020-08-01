@@ -3,6 +3,8 @@ import pandas as pd
 import seaborn as sns 
 import matplotlib.pyplot as plt 
 
+
+######## reading csv file to draw the heapmap of accuracy or F1 score either for no boost or bag, boost or bag
 df = pd.read_csv('/Users/vantran/Desktop/PLOTS/accuracy_noboostbag.csv')
 result = df.pivot(index = 'Feature Selection',columns = 'Classifier', values = 'Accuracy')
 
@@ -32,6 +34,9 @@ res.set_yticklabels(res.get_ymajorticklabels(),fontsize =20,rotation =45)
 # colorbar.ax.locator_params(nbins =4)
 # colorbar.ax.tick_params(labelsize = 15)
 
+
+sns.clustermap(result, cbar=True,annot = True,annot_kws={"size": 16},linewidths=0.30)
+plt.savefig('cluster.png')
 plt.savefig('heatmap_Accuracynoboostbag.png')
 plt.show()
 

@@ -22,6 +22,16 @@ import statsmodels.api as sm
 
 #######    main    ####
 def runSKFold(n_seed, splits, data):
+    
+    '''
+    splitting the data into n_seed of splits folds cross validarion
+    Args:
+    n_seed(int): number of cross-validation
+    splits(int): number of folds in each cross validation
+    
+    Returns:
+    List: data for each of n_seed * splits folds
+    '''
     runs = []
 
     X = np.array(data.drop('HPYLORI',axis=1))
@@ -38,6 +48,11 @@ def runSKFold(n_seed, splits, data):
     return runs
 
 def stats(data, column, file_to_write):
+    
+    '''
+    reporting p-values and odds ratio for multivariate logistic regression
+    
+    '''
     endog = data[column]
     features = data.drop(columns=[column],axis=1).columns
     exog = sm.add_constant(data.loc[:,features])
@@ -68,6 +83,10 @@ def stats(data, column, file_to_write):
 
 
 def univariate_stats(data,column, file_to_write):
+    '''
+    reporting p-values and odds ration for univariate logistic regression
+    '''
+    
     file_to_write.write('univariate wise: \n')
     columns = data.drop(columns = [column]).columns
     columns = [['ADD'],['AnyAllr'],['AnyPars3'],['CookArea'],['DEWORM'],['GCOW'],['HCIGR6A'],['GCAT_1','GCAT_2'],['GDOG_1.0','GDOG_2.0'],['GELEC_1.0','GELEC_2.0'],['GFLOOR6A_1.0','GFLOOR6A_2.0','GFLOOR6A_9.0'],['GWASTE_1.0','GWASTE_2.0','GWASTE_3.0'],['AgeGroups_1.0','AgeGroups_2.0'],['FamilyGrouped_1.0','FamilyGrouped_2.0'],['ToiletType_1.0','ToiletType_2.0'],['WaterSource_1.0','WaterSource_2.0']]
@@ -101,6 +120,10 @@ def univariate_stats(data,column, file_to_write):
         
         
 def impute(data):
+    '''
+    imputing the data
+    '''
+    
     columns = data.columns
     imputed_data = []
     for i in range(5):
@@ -114,6 +137,10 @@ def impute(data):
 
 
 def gen_stats(data, target):
+    '''
+    generating baseline accuracy and f1 score and multivariate and univariate
+    '''
+    
     data1 = impute(data)
 
     stats_file1 = open('multivariate.txt','w')

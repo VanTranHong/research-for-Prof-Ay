@@ -23,26 +23,7 @@ results_path = str(os.getcwd())+'/resultsparallel/'
 
 
 def produce_features(result, n_features,methods, n_seed, splits):
-      """Function that produce feature files for each combination of method in methods and each run of n_seed
-   
-
-    Args:
-    result is a list of size n_seed * splits (we call n_seed * splits to be runs), each item of the list correspond to a list of size methods. each item of that list correspond to list of features selected for that method at that run 
-    n_features: the number of features present in dataset
-    n_seed: the number of times we run the splits fold cross validation
-    splits: we will run splits-fold cross validation
-
-    Returns:
-        nothing but it will produce each file for each combination of method and seed. it will be done by combing splits of the same seed
-        
-    """ 
-    
-    
-    
-    
-  
     for i in range(len(methods)):
-        
         method = methods[i]
         for j in range(n_seed):
             arr = [0 for i in range(n_features)]

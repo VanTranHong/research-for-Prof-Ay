@@ -14,40 +14,36 @@ from sklearn.linear_model import  SGDClassifier
 
 def bag_elasticnet(X_train,X_test,y_train,y_test):
     
-    '''
-    applying bagging to logistic regression with elasticnet
-    Args:
-        X_train, X_test, y_train, y_test
+  
+    # applying bagging to logistic regression with elasticnet
+    # Args:
+    #     X_train, X_test, y_train, y_test
 
-    Returns:
-        DataFrame: Preprocessed DataFrame. where Alpha and L1 ratio are hyperparameters of elastic net, estimator is hyperparameter for bagging, confusion matrix is the confusion matrix for each combination of those hyperparameters
-    '''
+    # Returns:
+    #     DataFrame: Preprocessed DataFrame. where Alpha and L1 ratio are hyperparameters of elastic net, estimator is hyperparameter for bagging, confusion matrix is the confusion matrix for each combination of those hyperparameters
     
-    df = pd.DataFrame(columns=['Alpha','L1 ratio','Estimators','Confusion Matrix'])
+    
+    df = pd.DataFrame(columns=['Alpha','Estimators','Confusion Matrix'])
     rows = []
-    alphas= [0.0001, 0.001]#, 0.01, 0.1, 1, 10, 100]
-    l1s = [0.0,0.1,0.2]#,0.3,0.4,0.5,0.6,0.7,0.8,0.9,1.0]
+    alphas= [0.0001, 0.001, 0.01]
+    
     estimators = [50,100,150]
 
     for al in alphas:
-        for l1 in l1s:
+       
 
-            estimator = SGDClassifier(loss = 'log',alpha= al,penalty = 'elasticnet',l1_ratio=l1,random_state=0)
-            for n_est in estimators:
+        estimator = SGDClassifier(loss = 'log',alpha= al,penalty = 'l1',random_state=0)
+        for n_est in estimators:
 
-                bag = BaggingClassifier(estimator, n_estimators=n_est,  random_state=0)
-                bag.fit(X_train,y_train)
-                predicted_labels = bag.predict(X_test)
-                tn, fp, fn, tp = confusion_matrix(y_test, predicted_labels, labels=[0,1]).ravel()
-                convert_matrix = [tn,fp,fn,tp]
-                rows.append([n,n_est,convert_matrix])
-                model = regr.fit(X_train, y_train)
-                predicted_labels = model.predict(X_test)
-                tn, fp, fn, tp = confusion_matrix(y_test, predicted_labels, labels=[0,1]).ravel()
-                convert_matrix = [tn,fp,fn,tp]
-                rows.append([al,l1,n_est,convert_matrix])
+            bag = BaggingClassifier(estimator, n_estimators=n_est,  random_state=0)
+            bag.fit(X_train,y_train)
+            predicted_labels = bag.predict(X_test)
+            tn, fp, fn, tp = confusion_matrix(y_test, predicted_labels, labels=[0,1]).ravel()
+            convert_matrix = [tn,fp,fn,tp]
+            rows.append([al,n_est,convert_matrix])
+            
     for i in range(len(rows)):
-        df = df.append({'Alpha':rows[i][0],'L1 ratio':rows[i][1],'Estimators':rows[i][2],'Confusion Matrix':rows[i][3]}, ignore_index=True)
+        df = df.append({'Alpha':rows[i][0],'Estimators':rows[i][1],'Confusion Matrix':rows[i][2]}, ignore_index=True)
 
     return df
 
@@ -56,14 +52,14 @@ def bag_elasticnet(X_train,X_test,y_train,y_test):
 
 def bag_KNN(X_train,X_test,y_train,y_test):
     
-        '''
-    applying bagging to logistic regression with elasticnet
-    Args:
-        X_train, X_test, y_train, y_test
+        
+    # applying bagging to logistic regression with elasticnet
+    # Args:
+    #     X_train, X_test, y_train, y_test
 
-    Returns:
-        DataFrame: Preprocessed DataFrame. where Neighbors is hyperparameters of KNN, estimator is hyperparameter for bagging, confusion matrix is the confusion matrix for each combination of those hyperparameters
-    '''
+    # Returns:
+    #     DataFrame: Preprocessed DataFrame. where Neighbors is hyperparameters of KNN, estimator is hyperparameter for bagging, confusion matrix is the confusion matrix for each combination of those hyperparameters
+    
     
     
     
@@ -88,14 +84,14 @@ def bag_KNN(X_train,X_test,y_train,y_test):
     return df
 
 def bag_SVM(X_train,X_test,y_train,y_test):
-        '''
-    applying bagging to logistic regression with elasticnet
-    Args:
-        X_train, X_test, y_train, y_test
+        
+    # applying bagging to logistic regression with elasticnet
+    # Args:
+    #     X_train, X_test, y_train, y_test
 
-    Returns:
-        DataFrame: Preprocessed DataFrame. where Kernel, C, Gamma and degree are hyperparameters of SVM, estimator is hyperparameter for bagging, confusion matrix is the confusion matrix for each combination of those hyperparameters
-    '''
+    # Returns:
+    #     DataFrame: Preprocessed DataFrame. where Kernel, C, Gamma and degree are hyperparameters of SVM, estimator is hyperparameter for bagging, confusion matrix is the confusion matrix for each combination of those hyperparameters
+    
     
     
     df = pd.DataFrame(columns=['Kernel','C','Gamma','Degree','Estimators','Confusion Matrix'])
@@ -148,14 +144,14 @@ def bag_SVM(X_train,X_test,y_train,y_test):
 
 def bag_rdforest(X_train,X_test,y_train,y_test):
     
-        '''
-    applying bagging to logistic regression with elasticnet
-    Args:
-        X_train, X_test, y_train, y_test
+        
+    # applying bagging to logistic regression with elasticnet
+    # Args:
+    #     X_train, X_test, y_train, y_test
 
-    Returns:
-        DataFrame: Preprocessed DataFrame. where N_Estimators and Max_Depth are hyperparameters of Random Forest, estimator is hyperparameter for bagging, confusion matrix is the confusion matrix for each combination of those hyperparameters
-    '''
+    # Returns:
+    #     DataFrame: Preprocessed DataFrame. where N_Estimators and Max_Depth are hyperparameters of Random Forest, estimator is hyperparameter for bagging, confusion matrix is the confusion matrix for each combination of those hyperparameters
+    
     
     estimators = [50,100,150]
 
@@ -186,14 +182,14 @@ def bag_rdforest(X_train,X_test,y_train,y_test):
 
 
 def bag_xgboost(X_train,X_test,y_train,y_test):
-    '''
-    applying bagging to logistic regression with elasticnet
-    Args:
-        X_train, X_test, y_train, y_test
+    
+    # applying bagging to logistic regression with elasticnet
+    # Args:
+    #     X_train, X_test, y_train, y_test
 
-    Returns:
-        DataFrame: Preprocessed DataFrame. where Max_depth and N_estimators are hyperparameters of XGBoost, estimators  and samples are hyperparameter for bagging, confusion matrix is the confusion matrix for each combination of those hyperparameters
-    '''
+    # Returns:
+    #     DataFrame: Preprocessed DataFrame. where Max_depth and N_estimators are hyperparameters of XGBoost, estimators  and samples are hyperparameter for bagging, confusion matrix is the confusion matrix for each combination of those hyperparameters
+    
     
     
     
@@ -223,14 +219,14 @@ def bag_xgboost(X_train,X_test,y_train,y_test):
     return df
 
 def bag_naive_bayes(X_train,X_test,y_train,y_test):
-        '''
-    applying bagging to logistic regression with elasticnet
-    Args:
-        X_train, X_test, y_train, y_test
+    
+    # applying bagging to logistic regression with elasticnet
+    # Args:
+    #     X_train, X_test, y_train, y_test
 
-    Returns:
-        DataFrame: Preprocessed DataFrame. where Gauss indicate whether it is Gauss(1) or Bernoulli(0), estimator is hyperparameter for bagging, confusion matrix is the confusion matrix for each combination of those hyperparameters
-    '''
+    # Returns:
+    #     DataFrame: Preprocessed DataFrame. where Gauss indicate whether it is Gauss(1) or Bernoulli(0), estimator is hyperparameter for bagging, confusion matrix is the confusion matrix for each combination of those hyperparameters
+    
     
     estimators = [50,100,150]
 
@@ -261,14 +257,14 @@ def bag_naive_bayes(X_train,X_test,y_train,y_test):
 
 
 def classify_bag(estimator, X_train, X_test, y_train, y_test, n_est=None, rate=None):
-        '''
-    choosing which classifier to do bagging
-    Args:
-        estimator is the estimator to do bagging on
+        
+    # choosing which classifier to do bagging
+    # Args:
+    #     estimator is the estimator to do bagging on
 
-    Returns:
-        results of bagging by that chosen estimator
-    '''
+    # Returns:
+    #     results of bagging by that chosen estimator
+    
     
     
     

@@ -13,23 +13,23 @@ from sklearn.linear_model import  SGDClassifier
 
 
 def elasticnet(X_train,X_test,y_train,y_test):
-    df = pd.DataFrame(columns=['Alpha','L1 ratio','Confusion Matrix'])
+    df = pd.DataFrame(columns=['Alpha','Confusion Matrix'])
     rows = []
-    alphas= [0.0001, 0.001]#, 0.01, 0.1, 1, 10, 100]
-    l1s = [0.0,0.1,0.2]#,0.3,0.4,0.5,0.6,0.7,0.8,0.9,1.0]
+    alphas= [0.0001, 0.001, 0.01]
+    
 
     for al in alphas:
-        for l1 in l1s:
+        
 
-            regr = SGDClassifier(loss = 'log',alpha= al,penalty = 'elasticnet',l1_ratio=l1,random_state=0)
+        regr = SGDClassifier(loss = 'log',alpha= al,penalty = 'l1',random_state=0)
 
-            model = regr.fit(X_train, y_train)
-            predicted_labels = model.predict(X_test)
-            tn, fp, fn, tp = confusion_matrix(y_test, predicted_labels, labels=[0,1]).ravel()
-            convert_matrix = [tn,fp,fn,tp]
-            rows.append([al,l1,convert_matrix])
+        model = regr.fit(X_train, y_train)
+        predicted_labels = model.predict(X_test)
+        tn, fp, fn, tp = confusion_matrix(y_test, predicted_labels, labels=[0,1]).ravel()
+        convert_matrix = [tn,fp,fn,tp]
+        rows.append([al,convert_matrix])
     for i in range(len(rows)):
-        df = df.append({'Alpha':rows[i][0],'L1 ratio':rows[i][1],'Confusion Matrix':rows[i][2]}, ignore_index=True)
+        df = df.append({'Alpha':rows[i][0],'Confusion Matrix':rows[i][1]}, ignore_index=True)
 
     return df
 

@@ -6,17 +6,17 @@ from sklearn.preprocessing import StandardScaler
 
 
 def remove_invalid_column(data,target):
-    """Function that removes columns that aren't suitable for machine learning.
-    This includes features with more than 5% missing values, wrong data type,
-    and the indices.
+    # """Function that removes columns that aren't suitable for machine learning.
+    # This includes features with more than 5% missing values, wrong data type,
+    # and the indices.
 
-    Args:
-        data (Pandas DataFrame): The DataFrame that contains data that hasn't been preprocessed.
-        target: the dependent variable of the dataset
+    # Args:
+    #     data (Pandas DataFrame): The DataFrame that contains data that hasn't been preprocessed.
+    #     target: the dependent variable of the dataset
 
-    Returns:
-        DataFrame: Preprocessed DataFrame.
-    """
+    # Returns:
+    #     DataFrame: Preprocessed DataFrame.
+    # """
     data1 = data[data.columns[data.isnull().mean()<0.05]]
     data1 = data1.select_dtypes(exclude=['object'])
     data1 = data1[data1[target].notna()] 
@@ -25,15 +25,15 @@ def remove_invalid_column(data,target):
     return data1
 
 def recategorize(data):
-    """Recategorizes the data according to the standards in the SPSS file.
-    This functions aim to relavel the reference point as 0 so that in the dummification process, it will be removed
+    # """Recategorizes the data according to the standards in the SPSS file.
+    # This functions aim to relavel the reference point as 0 so that in the dummification process, it will be removed
 
-    Args:
-        data (DataFrame): DataFrame containing data that hasn't been preprocessed.
+    # Args:
+    #     data (DataFrame): DataFrame containing data that hasn't been preprocessed.
 
-    Returns:
-        DataFrame: A DataFrame with replaced values.
-    """
+    # Returns:
+    #     DataFrame: A DataFrame with replaced values.
+    # """
     
     data["ADD"].replace({2: 0}, inplace=True)
     data["AnyPars3"].replace({2: 0, 9: 0}, inplace=True)

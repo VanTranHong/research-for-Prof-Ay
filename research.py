@@ -37,10 +37,10 @@ n_features = data1.shape[1]-1
 n_seed = 2
 splits =2
 runs = stats.runSKFold(n_seed,splits,data=data1)
-score.score(rsr.normal_run( n_seed, splits, ['fcbf_0'], ['naive_bayes'], runs, n_features),n_seed,splits)
-# score.score(sfs_r.subset_run(n_seed, splits,['knn'],['accuracy'],runs,n_features),n_seed,splits)
+# score.score(rsr.normal_run( n_seed, splits, ['infogain_10'], ['elasticnet'], runs, n_features),n_seed,splits)
+score.score(sfs_r.subset_run(n_seed, splits,['elasticnet'],['f1'],runs,n_features),n_seed,splits)
 # sfs_r.subset_features(n_seed,splits, ['knn'],['accuracy'],runs, n_features)
-# score.score(bbr.boostbag_run(n_seed,splits,['infogain_10'],['naive_bayes'],runs,'bag',n_features), n_seed,splits)
+# score.score(bbr.boostbag_run(n_seed,splits,['infogain_10'],['elasticnet'],runs,'boost',n_features), n_seed,splits)
     
 # # score.score(nr.normal_run(data1,n_seed=1,splits=2,methods=['cfs_0'],estimators=['knn']),1,2)
 # num = data1.shape[1]

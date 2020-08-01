@@ -3,12 +3,15 @@ import pandas as pd
 import seaborn as sns 
 import matplotlib.pyplot as plt 
 
+
+
+###### reading from csv file that contains 3 columns, feature selection, risk factor and probability ######
 df = pd.read_csv('/Users/vantran/Desktop/PLOTS/heatmapfeatures.csv')
 result = df.pivot('Feature Selection','Risk Factor', 'Probability')
 
 
 fig,ax = plt.subplots(figsize=(12,7))
-
+###### reordering the rows and columns #######
 Features = ['KNN-F1','KNN-Ac','SVM-F1','SVM-Ac','RF-F1','RF-Ac','NB-F1','NB-Ac','LR-F1','LR-Ac','XGB-F1','XGB-Ac','IG-20','ReF-20','IG-10','ReF-10','CFS','MRMR','FCBF' ]
 Columns = [1,12,13,18, 24,7,2,3,4,5, 6,8,9,10,11,14,15,16,17,19,20,21,22,23,25,26,27]
 result = result.reindex(index = Features,columns = Columns)
@@ -30,8 +33,10 @@ res.set_xticklabels(res.get_xmajorticklabels(),fontsize =15)
 res.set_yticklabels(res.get_ymajorticklabels(),fontsize =15,rotation =45)
 colorbar  = res.collections[0].colorbar
 colorbar.ax.locator_params(nbins =3)
-
 plt.savefig('feature.png')
+sns.clustermap(result, linewidths=0.30)
+plt.savefig('cluster.png')
+
 plt.show()
 
 #RdYlGn

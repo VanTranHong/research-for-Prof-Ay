@@ -4,14 +4,20 @@ import seaborn as sns
 import matplotlib.pyplot as plt 
 import math
 
+
+
+#### reading the csv file that contains the frequency of features #####
 df = pd.read_csv('/Users/vantran/Desktop/PLOTS/All_based.csv')
+
+### number of rows and columns, row the frequency for each feature, columns is the feature selection method
 row = df.shape[0]
 cols = df.shape[1]
-print('row'+str(row))
-print('cols'+str(cols))
+
 
 average = []
 std = []
+
+##### taking the average and standard error across the feature selection methods  for each feature ##### 
 for i in range(row):
     rw = df.iloc[i].tolist()
     rw = [i/10 for i in rw]
@@ -26,9 +32,7 @@ for i in Features:
     new_std.append(std[i-1])
 x_pos = np.arange(len(Features))
 
-print(len(Features))
-print(len(average))
-print(len(std))
+
 
 
 fig, ax = plt.subplots()

@@ -24,21 +24,21 @@ results_path = str(os.getcwd())+'/resultsparallel/'
 
 ###########when we have selected the best subset of parameters for sfs #####
 def produce_features_sfs(result, n_features,methods, n_seed,splits ):#[run][classifier]
-     '''
-    producing features file for each seed run for each feature selection methods
-    this only records the features that give the best accuracy or F1 score
+   
+    # producing features file for each seed run for each feature selection methods
+    # this only records the features that give the best accuracy or F1 score
     
-    Args:
-    result(list): result form feature selection methods
-    n_features(int): the number of features in the dataset
-    methods(list): of feature selection methods
-    n_seed(int): number of splits-fold cross validation
-    splits(int):number of folds in each cross validation
+    # Args:
+    # result(list): result form feature selection methods
+    # n_features(int): the number of features in the dataset
+    # methods(list): of feature selection methods
+    # n_seed(int): number of splits-fold cross validation
+    # splits(int):number of folds in each cross validation
     
-    Returns: None
+    # Returns: None
     
     
-    '''
+  
     
     for i in range(len(methods)):
         method = methods[i]
@@ -55,39 +55,39 @@ def produce_features_sfs(result, n_features,methods, n_seed,splits ):#[run][clas
 
 def execute_feature_selection_sfs(runs,classifiers, metric,n_features, n_seed, n_splits):
     
-    '''
-    executing feature selection on the runs in parallel
-    Args:
-        n_seed(int): number of times we run splits-fold cross validation
-        splits(int): number of folds in each cross validation
-        methods(list): feature selection methods, can only be ranking method or non SFS subsetbased methods
-        runs(list): data for splits
-        
-        n_features(int): number of features
-
-    Returns:
-        List: of size number of runs (=n_seed * splits)
-        each item in the list is a list of the same size as methods, each item in that list is the list of features selected for that method
     
-    '''
+    # executing feature selection on the runs in parallel
+    # Args:
+    #     n_seed(int): number of times we run splits-fold cross validation
+    #     splits(int): number of folds in each cross validation
+    #     methods(list): feature selection methods, can only be ranking method or non SFS subsetbased methods
+    #     runs(list): data for splits
+        
+    #     n_features(int): number of features
+
+    # Returns:
+    #     List: of size number of runs (=n_seed * splits)
+    #     each item in the list is a list of the same size as methods, each item in that list is the list of features selected for that method
+    
+    
     
     result =  Parallel(n_jobs=-1)(delayed(execute_featureselection_sfs_a_run)(run, classifiers, metric) for  run in runs)#[run][classifiers]
  
     return result
 def execute_featureselection_sfs_a_run(run, classifiers, metric):##[metric][classifier] a list of length n_classifier
     
-    '''
-    executing SFFS for each classifier in the classifiers based on metric
     
-    Args:
-        run(list): of  X_train, X_test, y_train, y_test
-        classifiers(list): of classifiers
-        metric(string): accuracy or F1 score
+    # executing SFFS for each classifier in the classifiers based on metric
+    
+    # Args:
+    #     run(list): of  X_train, X_test, y_train, y_test
+    #     classifiers(list): of classifiers
+    #     metric(string): accuracy or F1 score
 
-    Returns:
-        List: A list of the same size as methods where each item is list of features selected for that method for that run
+    # Returns:
+    #     List: A list of the same size as methods where each item is list of features selected for that method for that run
     
-    '''
+    
     
     
     X_train,  y_train = run[0], run[2] #[metric][classifier][parameters]
@@ -102,11 +102,11 @@ def execute_featureselection_sfs_a_run(run, classifiers, metric):##[metric][clas
 
 
 def execute_best_feature_a_run(run, classifiers, metric):
-    '''executing feature selection for a run for the classifiers using the best hyperparameters that will maximize the metric
-    run(list): of X_train, X_test, y_train, y_test
-    classifiers: list of classifiers
-    metric(string): accuracy or F1 score
-    '''
+    # executing feature selection for a run for the classifiers using the best hyperparameters that will maximize the metric
+    # run(list): of X_train, X_test, y_train, y_test
+    # classifiers: list of classifiers
+    # metric(string): accuracy or F1 score
+    
     
     X_train,  y_train = run[0], run[2] #[metric][classifier][parameters]
     return_arr =[]
@@ -118,15 +118,15 @@ def execute_best_feature_a_run(run, classifiers, metric):
         
     
 def execute_best_feature_sfs(runs, classifiers, metric, n_features, n_seed, splits):
-    '''executing feature selection in parallel for the classifiers using the best hyperparameters that will maximize the metric
-    and write the features selected for each classifier for each cross validation into csv files
-    run(list): of X_train, X_test, y_train, y_test
-    classifiers: list of classifiers
-    n_features(int): the number of features in our dataset
-    n_seed: the number of cross validaton
-    splits: the number of folds in each cross validation
-    metric(string): accuracy or F1 score
-    '''
+    # executing feature selection in parallel for the classifiers using the best hyperparameters that will maximize the metric
+    # and write the features selected for each classifier for each cross validation into csv files
+    # run(list): of X_train, X_test, y_train, y_test
+    # classifiers: list of classifiers
+    # n_features(int): the number of features in our dataset
+    # n_seed: the number of cross validaton
+    # splits: the number of folds in each cross validation
+    # metric(string): accuracy or F1 score
+    
     
     result = Parallel(n_jobs=-1)(delayed(execute_best_feature_a_run)(run,classifiers,metric) for run in runs)
     methods = [classifier+metric for classifier in classifiers]
@@ -135,8 +135,8 @@ def execute_best_feature_sfs(runs, classifiers, metric, n_features, n_seed, spli
     
 
 def subset_features(n_seed, splits, estimators,metrics, runs, n_features):
-    '''calling this file to get the best features using SFFS method
-    '''
+    # calling this file to get the best features using SFFS method
+    
     
     if not os.path.exists('dataparallel'):
         os.makedirs('dataparallel')
@@ -151,21 +151,21 @@ def subset_features(n_seed, splits, estimators,metrics, runs, n_features):
     
 
 def subset_run(n_seed, splits, estimators, metrics,runs, n_features):
-      '''
-    running SFFS
     
-    Args:
-        n_seed(int): number of times we run splits-fold cross validation
-        splits(int): number of folds in each cross validation
-        methods(list): feature selection methods, can only be ranking method or non SFS subsetbased methods
-        estimators(list): classifiers
-        runs(list): data for splits
-        name (string): boost or bag
-        n_features(int): number of features
+    # running SFFS
+    
+    # Args:
+    #     n_seed(int): number of times we run splits-fold cross validation
+    #     splits(int): number of folds in each cross validation
+    #     methods(list): feature selection methods, can only be ranking method or non SFS subsetbased methods
+    #     estimators(list): classifiers
+    #     runs(list): data for splits
+    #     name (string): boost or bag
+    #     n_features(int): number of features
 
-    Returns:
-        List(list): final csv files that can be scored
-    '''
+    # Returns:
+    #     List(list): final csv files that can be scored
+    
     
     
     if not os.path.exists('dataparallel'):
@@ -185,21 +185,21 @@ def subset_run(n_seed, splits, estimators, metrics,runs, n_features):
     return file_list
 
 def execute_subset_run(index, run,features,estimators, metric):
-    '''
-    Executing a subset run for different estimators using that metric and features accordingly
     
-    Args:
-    index(int): index of the run
-    run(list): of X_train, X_test, y_train, y_test
-    features(list): of features of that runs for different methods of feature selections
-    estimators(list): of classifiers
-    metric(string): accuracy or F1 score
+    # Executing a subset run for different estimators using that metric and features accordingly
     
-    Returns:
-    None
+    # Args:
+    # index(int): index of the run
+    # run(list): of X_train, X_test, y_train, y_test
+    # features(list): of features of that runs for different methods of feature selections
+    # estimators(list): of classifiers
+    # metric(string): accuracy or F1 score
+    
+    # Returns:
+    # None
     
     
-    '''
+    
     
     X_train, X_test = run[0], run[1]
     y_train, y_test = run[2], run[3]
@@ -213,21 +213,21 @@ def execute_subset_run(index, run,features,estimators, metric):
         
         
 def combinefile(methods,estimators,splits, n_seed,num_runs, outer_dict):
-      ''' combining the results from all runs of the same seed each combination of estimator and feature selection methods into a bigger file and put that file into the dictionary
-    this will sum the matrix for each split of the same seed and write into a csv file
+    # combining the results from all runs of the same seed each combination of estimator and feature selection methods into a bigger file and put that file into the dictionary
+    # this will sum the matrix for each split of the same seed and write into a csv file
     
-    Args:
+    # Args:
     
-    methods(list): of feature selection methods
-    estimators(list): of classifiers
-    splits(int): numnber of folds in each cross validaton
-    n_seed(int): number of cross validation
-    outer_dict: dictonary where we will put the names of files created into
+    # methods(list): of feature selection methods
+    # estimators(list): of classifiers
+    # splits(int): numnber of folds in each cross validaton
+    # n_seed(int): number of cross validation
+    # outer_dict: dictonary where we will put the names of files created into
     
-    Returns:
-    None
+    # Returns:
+    # None
     
-    '''
+    
     
     for estimator in estimators:
         for method in methods:
@@ -246,7 +246,7 @@ def combinefile(methods,estimators,splits, n_seed,num_runs, outer_dict):
                 with open(filename+'.npy', 'wb') as f:
                     np.save(f, cmat)    
 def delete_interim_csv(estimators,methods,runs_len):
-       '''deleting unimportant temporary csv files'''
+    #    deleting unimportant temporary csv files
     for estimator in estimators:
         for method in methods:
             for i in range(runs_len):
@@ -256,14 +256,14 @@ def delete_interim_csv(estimators,methods,runs_len):
         
 def create_empty_dic(estimators, methods):
     
-     '''creating an empty dictionary whose keys are estimators. values is also a dictionay whose value is feature selection method
-    Args:
-    estimators(list): of classifiers
-    methods(list): feature selection methods
-    Returns:
-    an empty dictionary
+    # creating an empty dictionary whose keys are estimators. values is also a dictionay whose value is feature selection method
+    # Args:
+    # estimators(list): of classifiers
+    # methods(list): feature selection methods
+    # Returns:
+    # an empty dictionary
     
-    '''
+
     final_dict = {}
     for estimator in estimators:
         final_dict[estimator] = {}
@@ -271,19 +271,19 @@ def create_empty_dic(estimators, methods):
             final_dict[estimator][method] = []
     return final_dict
 def stringconverter(string_vector):
-       '''converting string to int'''
+    #    converting string to int
     return np.fromstring(string_vector[1:-1], dtype=np.int, sep=',')
         
 def create_final_csv(outer_dict, n_seed):
-     '''
-    creating a final csv file by putting the confusion matrix of different cross validations of the same combination of feature selection and classifiers together
-    Args:
-    outer_dict: dictionary that contains the names of the files
-    n_need: number of cross validations
     
-    Returns: the names of the csv files that we create
+    # creating a final csv file by putting the confusion matrix of different cross validations of the same combination of feature selection and classifiers together
+    # Args:
+    # outer_dict: dictionary that contains the names of the files
+    # n_need: number of cross validations
     
-    '''
+    # Returns: the names of the csv files that we create
+    
+    
     
     final_names = []
     vfunc = np.vectorize(stringconverter)
@@ -315,13 +315,13 @@ def create_final_csv(outer_dict, n_seed):
 
     return final_names
 def get_classifiers(classifier):
-    '''getting the classifiers that will be used for feature selection methods of SFFS
-    Args:
-    classifier(string): name of classifier
+    # getting the classifiers that will be used for feature selection methods of SFFS
+    # Args:
+    # classifier(string): name of classifier
     
-    Returns:
-    list of classifiers for that classifier
-    '''
+    # Returns:
+    # list of classifiers for that classifier
+    
     est = []
     if classifier == 'knn':
         neighbors = [5,10,12,14,16,20]
@@ -375,15 +375,15 @@ def get_classifiers(classifier):
                 est.append(xgb)
 
     elif classifier=='elasticnet':
-        alphas= [0.001,0.0001]#, 0.01, 0.1, 1, 10, 100]
-        l1s = [0.0,0.1,0.2]#,0.3,0.4,0.5,0.6,0.7,0.8,0.9,1.0]
+        alphas= [0.001,0.0001, 0.01]#, 0.1, 1]#, 10, 100]
+       
 
         for alpha in alphas:
-            for l1 in l1s:
+           
 
-                regr = SGDClassifier(loss = 'log',alpha= alpha,penalty = 'elasticnet',l1_ratio=l1,random_state=0)
+            regr = SGDClassifier(loss = 'log',alpha= alpha,penalty = 'l1',random_state=0)
 
-                est.append(regr)
+            est.append(regr)
 
     else:
             #######         NAIVE_BAYES #######
@@ -392,11 +392,11 @@ def get_classifiers(classifier):
     return est
 
 def get_best_classifier(classifier,metric):
-    '''getting the classifiers for that classifier name that will maximize metric
-    Args:
-    classifier(string): name of the classifier
-    metric(string): accuracy or F1 score
-    '''
+    # getting the classifiers for that classifier name that will maximize metric
+    # Args:
+    # classifier(string): name of the classifier
+    # metric(string): accuracy or F1 score
+    
     
     est = []
     if classifier == 'knn'  and metric == 'accuracy':
